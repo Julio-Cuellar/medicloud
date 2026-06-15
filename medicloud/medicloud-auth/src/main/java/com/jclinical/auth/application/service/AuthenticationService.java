@@ -19,6 +19,14 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Servicio encargado de gestionar los procesos de autenticación de usuarios.
+ * <p>
+ * Esto incluye el inicio de sesión convencional con contraseña, la renovación de tokens
+ * mediante la rotación de Refresh Tokens (OAuth2), el registro de metadatos de acceso
+ * y la invalidación de sesiones (cierre de sesión simple y global).
+ * </p>
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -32,6 +40,22 @@ public class AuthenticationService {
     private final JwtEncoder jwtEncoder;
     private final TokenHelper tokenHelper;
 
+    /**
+     * Autentica a un usuario con sus credenciales tradicionales (email y contraseña).
+     * <p>
+     * Valida si el usuario existe, está activo, no tiene la cuenta bloqueada,
+     * si la contraseña es correcta, y si su correo ha sido verificado.
+     * </p>
+     *
+     * @param username    Nombre de usuario (dirección de correo electrónico).
+     * @param password    Contraseña en texto plano suministrada por el usuario.
+     * @param deviceLabel Etiqueta identificativa del dispositivo utilizado (ej. "Web App").
+     * @param ipAddress   Dirección IP origen de la petición de login.
+     * @param userAgent   Cadena de agente de usuario del navegador o cliente web.
+     * @return {@link TokenResponse} con los tokens de acceso, refresco e información del usuario.
+     * @throws MedicloudException Si las credenciales son incorrectas, si el usuario está inactivo,
+     *                            bloqueado temporalmente o no ha verificado su correo.
+     */
     @Transactional
     public TokenResponse login(String username, String password, String deviceLabel, String ipAddress, String userAgent) {
         String email = username.toLowerCase().trim();
@@ -69,6 +93,22 @@ public class AuthenticationService {
         return generateTokens(user, deviceLabel, ipAddress, userAgent);
     }
 
+    /**
+     * Renueva el token de acceso utilizando un token de refresco (Refresh Token) válido.
+     * <p>
+     * Implementa la técnica de rotación de tokens (refresh token rotation).
+     * Si se detecta un reuso de un token ya revocado, se asume un ataque y se invalidan
+     * todos los tokens activos asociados al usuario.
+     * </p>
+     *
+     * @param rawRefreshToken Token de refresco recibido en texto plano.
+     * @param deviceLabel     Etiqueta descriptiva del dispositivo que solicita renovación.
+     * @param ipAddress       Dirección IP origen de la solicitud de refresco.
+     * @param userAgent       Cadena de agente de usuario.
+     * @return Nuevo {@link TokenResponse} con un nuevo par de Access Token y Refresh Token.
+     * @throws MedicloudException Si el token es nulo/inválido, ha expirado, la cuenta está inactiva
+     *                            o si se detecta reuso del token.
+     */
     @Transactional
     public TokenResponse refresh(String rawRefreshToken, String deviceLabel, String ipAddress, String userAgent) {
         if (rawRefreshToken == null || rawRefreshToken.isBlank()) {
@@ -121,6 +161,11 @@ public class AuthenticationService {
         return tokenResponse;
     }
 
+    /**
+     * Cierra la sesión activa revocando el token de refresco provisto.
+     *
+     * @param rawRefreshToken El token de refresco en texto plano a invalidar.
+     */
     @Transactional
     public void logout(String rawRefreshToken) {
         if (rawRefreshToken != null && !rawRefreshToken.isBlank()) {
@@ -132,11 +177,25 @@ public class AuthenticationService {
         }
     }
 
+    /**
+     * Cierra todas las sesiones activas del usuario (revoca todos sus Refresh Tokens).
+     *
+     * @param userId Identificador único del usuario.
+     */
     @Transactional
     public void logoutAll(UUID userId) {
         refreshTokenRepository.deleteByUserId(userId);
     }
 
+    /**
+     * Genera internamente un nuevo token de acceso JWT y registra el correspondiente token de refresco.
+     *
+     * @param user        El usuario para el cual se generan los tokens.
+     * @param deviceLabel Dispositivo que realiza la conexión.
+     * @param ipAddress   Dirección IP origen de la petición.
+     * @param userAgent   Información del agente de usuario.
+     * @return {@link TokenResponse} completo con el JWT firmado y metadatos del usuario.
+     */
     private TokenResponse generateTokens(User user, String deviceLabel, String ipAddress, String userAgent) {
         Instant now = Instant.now();
         Instant expiresAt = now.plusSeconds(3600);

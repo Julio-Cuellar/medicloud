@@ -16,6 +16,14 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
+/**
+ * Servicio encargado de gestionar el registro de nuevos usuarios en la plataforma.
+ * <p>
+ * Incluye la validación inicial de contraseñas, la creación de la cuenta de usuario,
+ * la generación y persistencia de tokens de verificación de correo electrónico,
+ * y el procesamiento de la verificación del correo electrónico.
+ * </p>
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -27,6 +35,17 @@ public class RegistrationService {
     private final PasswordValidator passwordValidator;
     private final TokenHelper tokenHelper;
 
+    /**
+     * Registra un nuevo usuario en la base de datos con estado de correo no verificado.
+     * <p>
+     * Valida que la contraseña cumpla con las políticas del sistema. Si el correo
+     * electrónico ya está registrado, retorna un mensaje genérico exitoso de forma silenciosa
+     * para evitar enumeración de cuentas.
+     * </p>
+     *
+     * @param request DTO con la información de registro del nuevo usuario.
+     * @return {@link MessageResponse} indicando que recibirá instrucciones de verificación.
+     */
     @Transactional
     public MessageResponse register(RegisterRequest request) {
         passwordValidator.validatePasswordStrength(request.getPassword());
@@ -64,6 +83,14 @@ public class RegistrationService {
         return new MessageResponse("Si el correo ingresado no está registrado previamente, recibirás un enlace de verificación en breve.");
     }
 
+    /**
+     * Verifica la dirección de correo electrónico del usuario marcando su cuenta
+     * como verificada en la base de datos si el token es válido.
+     *
+     * @param request DTO que contiene el token de verificación.
+     * @return {@link VerifyEmailResponse} confirmando que el correo fue verificado.
+     * @throws MedicloudException Si el token es inválido, ya fue usado o ha expirado.
+     */
     @Transactional
     public VerifyEmailResponse verifyEmail(VerifyEmailRequest request) {
         String tokenHash = tokenHelper.hashToken(request.getToken());
@@ -89,6 +116,13 @@ public class RegistrationService {
         return new VerifyEmailResponse("Correo verificado correctamente. Ya puedes iniciar sesión.", user.getEmail());
     }
 
+    /**
+     * Reenvía un nuevo correo y token de verificación si la cuenta asociada al email
+     * no ha sido verificada aún.
+     *
+     * @param request DTO con el correo electrónico del usuario.
+     * @return {@link MessageResponse} indicando que recibirá instrucciones de verificación.
+     */
     @Transactional
     public MessageResponse resendVerification(ResendVerificationRequest request) {
         String email = request.getEmail().toLowerCase().trim();

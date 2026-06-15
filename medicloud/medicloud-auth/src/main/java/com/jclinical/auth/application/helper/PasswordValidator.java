@@ -11,6 +11,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * Componente de ayuda para la validación de contraseñas.
+ * <p>
+ * Verifica que las contraseñas cumplan con las reglas de complejidad y fortaleza,
+ * y que no coincidan con el historial reciente de contraseñas del usuario.
+ * </p>
+ */
 @Component
 @RequiredArgsConstructor
 public class PasswordValidator {
@@ -18,6 +25,13 @@ public class PasswordValidator {
     private final PasswordHistoryRepository passwordHistoryRepository;
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * Valida la fortaleza de una contraseña.
+     * La contraseña debe tener al menos 10 caracteres y contener mayúsculas, minúsculas y números.
+     *
+     * @param password Contraseña en texto plano a validar.
+     * @throws MedicloudException Si la contraseña es nula, muy corta o no cumple con la complejidad requerida.
+     */
     public void validatePasswordStrength(String password) {
         if (password == null || password.length() < 10) {
             throw new MedicloudException("La contraseña no cumple la política del sistema.", ErrorCodes.PASSWORD_TOO_WEAK, 422);
@@ -35,6 +49,14 @@ public class PasswordValidator {
         }
     }
 
+    /**
+     * Valida que la nueva contraseña no haya sido utilizada en el historial reciente del usuario.
+     * Compara la nueva contraseña con el hash de las últimas contraseñas almacenadas en el historial.
+     *
+     * @param user        El usuario que solicita cambiar o establecer la contraseña.
+     * @param newPassword Nueva contraseña en texto plano.
+     * @throws MedicloudException Si la contraseña coincide con alguna de las usadas recientemente.
+     */
     public void validatePasswordHistory(User user, String newPassword) {
         List<PasswordHistory> history = passwordHistoryRepository.findFirst5ByUserIdOrderByCreatedAtDesc(user.getId());
         for (PasswordHistory ph : history) {

@@ -57,6 +57,12 @@ public class AuthControllerTest {
     @MockBean
     private JwtDecoder jwtDecoder;
 
+    @MockBean
+    private AvatarService avatarService;
+
+    @MockBean
+    private StaffService staffService;
+
     /**
      * Prueba que el registro de un nuevo usuario se realice de manera exitosa.
      *

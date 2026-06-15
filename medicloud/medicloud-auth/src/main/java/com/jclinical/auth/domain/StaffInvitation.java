@@ -1,7 +1,10 @@
 package com.jclinical.auth.domain;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -33,6 +36,19 @@ public class StaffInvitation {
     /** Dirección de correo electrónico del destinatario de la invitación. */
     @Column(nullable = false)
     private String email;
+
+    /** Nombre completo del invitado (requerido por el flujo de invitación de personal). */
+    @Column(name = "full_name")
+    private String fullName;
+
+    /**
+     * Credenciales del médico serializadas como JSON.
+     * Solo presente cuando {@code role == DOCTOR}. Se usa en {@code acceptInvitation()}
+     * para crear el {@code DoctorProfile} una vez que existe el {@code ClinicStaff}.
+     */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "doctor_credentials_json", columnDefinition = "jsonb")
+    private JsonNode doctorCredentialsJson;
 
     /** Rol que se le asignará al destinatario al aceptar la invitación (ej. DOCTOR, RECEPTIONIST). */
     @Column(nullable = false)

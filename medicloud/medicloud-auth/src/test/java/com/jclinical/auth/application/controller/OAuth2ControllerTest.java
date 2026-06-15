@@ -70,7 +70,7 @@ public class OAuth2ControllerTest {
                 anyString()
         )).thenReturn(tokenResponse);
 
-        mockMvc.perform(post("/v1/auth/token")
+        mockMvc.perform(post("/oauth2/token")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("grant_type", "password")
                         .param("username", "test@medicloud.mx")
@@ -113,7 +113,7 @@ public class OAuth2ControllerTest {
                 anyString()
         )).thenReturn(tokenResponse);
 
-        mockMvc.perform(post("/v1/auth/token")
+        mockMvc.perform(post("/oauth2/token")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("grant_type", "refresh_token")
                         .cookie(new jakarta.servlet.http.Cookie("refresh_token", "old-mock-refresh-token"))
@@ -132,7 +132,7 @@ public class OAuth2ControllerTest {
      */
     @Test
     public void testTokenInvalidGrantType() throws Exception {
-        mockMvc.perform(post("/v1/auth/token")
+        mockMvc.perform(post("/oauth2/token")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("grant_type", "authorization_code"))
                 .andExpect(status().isUnprocessableEntity())

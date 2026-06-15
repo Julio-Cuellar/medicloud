@@ -18,12 +18,13 @@ import java.util.Map;
 /**
  * Controlador REST para el protocolo OAuth2.
  * <p>
- * Gestiona el intercambio de credenciales para la obtención y refresco de tokens
- * de acceso/ID de usuario utilizando los flujos (grants) soportados.
+ * Expone el endpoint {@code POST /oauth2/token} para autenticación con credenciales
+ * (grant_type=password) y renovación de sesión (grant_type=refresh_token),
+ * conforme al contrato API_Modulo_01_Auth.md v2.1.
  * </p>
  */
 @RestController
-@RequestMapping("/v1/auth")
+@RequestMapping("/oauth2")
 @RequiredArgsConstructor
 @Slf4j
 public class OAuth2Controller {
@@ -31,13 +32,13 @@ public class OAuth2Controller {
     private final AuthenticationService authenticationService;
 
     /**
-     * Endpoint unificado de autenticación (/token) compatible con OAuth2.
+     * Endpoint unificado de autenticación compatible con OAuth2.
      * Soporta los grants: {@code password} (inicio de sesión) y {@code refresh_token} (renovación de sesión).
      *
-     * @param params             Parámetros de la solicitud del flujo OAuth2.
-     * @param cookieRefreshToken Token de refresco recibido a través de una cookie segura.
-     * @param request            Detalles de la solicitud HTTP (usado para rastrear IP y User-Agent).
-     * @param response           Objeto de respuesta HTTP (usado para establecer la cookie segura).
+     * @param params             Parámetros de la solicitud del flujo OAuth2 (form-encoded).
+     * @param cookieRefreshToken Token de refresco recibido a través de cookie segura {@code HttpOnly}.
+     * @param request            Detalles de la solicitud HTTP (IP, User-Agent).
+     * @param response           Objeto de respuesta HTTP para establecer la cookie de refresco.
      * @return Respuesta estructurada con los tokens generados.
      */
     @PostMapping(value = "/token", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
@@ -70,10 +71,10 @@ public class OAuth2Controller {
     }
 
     /**
-     * Configura la cookie segura e HttpOnly con el valor del Refresh Token.
+     * Configura la cookie {@code HttpOnly} para el refresh token.
      *
-     * @param response           Objeto HttpServletResponse para agregar la cabecera de la cookie.
-     * @param refreshTokenValue Valor del refresh token. Si es nulo, se limpia la cookie.
+     * @param response           Objeto HttpServletResponse para agregar la cabecera Set-Cookie.
+     * @param refreshTokenValue Valor del refresh token. Si es nulo o vacío, limpia la cookie.
      */
     private void setRefreshTokenCookie(HttpServletResponse response, String refreshTokenValue) {
         ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshTokenValue != null ? refreshTokenValue : "")

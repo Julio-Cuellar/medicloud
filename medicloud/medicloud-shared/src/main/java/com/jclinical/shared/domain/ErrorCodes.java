@@ -55,6 +55,8 @@ public final class ErrorCodes {
     public static final String STAFF_NOT_FOUND = "STAFF_NOT_FOUND";
     /** El miembro del personal no tiene asignado el rol de doctor. */
     public static final String STAFF_NOT_A_DOCTOR = "STAFF_NOT_A_DOCTOR";
+    public static final String FILE_TOO_LARGE = "FILE_TOO_LARGE";
+    public static final String INVALID_FILE_TYPE = "INVALID_FILE_TYPE";
     
     /** El usuario no tiene permisos para acceder a esta clínica. */
     public static final String CLINIC_ACCESS_DENIED = "CLINIC_ACCESS_DENIED";

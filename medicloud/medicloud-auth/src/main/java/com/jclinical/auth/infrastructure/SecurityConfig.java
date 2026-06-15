@@ -13,12 +13,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
- * Clase de configuración para la seguridad Web y de APIs basada en Spring Security.
+ * Configuración de seguridad Web y de APIs basada en Spring Security.
  * <p>
  * Define las reglas de acceso de los endpoints de la API (públicos y protegidos),
- * la política de sesiones stateless (sin estado) para APIs REST, la integración
- * como servidor de recursos OAuth2 (Resource Server) usando tokens JWT, y
- * el codificador de contraseñas de la aplicación.
+ * la política de sesiones stateless, la integración como Resource Server OAuth2
+ * con JWT, y el codificador de contraseñas de la aplicación.
  * </p>
  */
 @Configuration
@@ -27,14 +26,36 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     /**
-     * Configura la cadena de filtros de seguridad para los endpoints que comienzan con {@code /v1/**}.
-     * Deshabilita CSRF, habilita CORS por defecto, establece la sesión como STATELESS y
-     * define las rutas públicas de autenticación permitiendo el paso libre, mientras que
-     * exige autenticación JWT para cualquier otra ruta.
+     * Cadena de filtros para los endpoints {@code /oauth2/**}: el endpoint
+     * {@code POST /oauth2/token} es completamente público.
      *
-     * @param http Objeto HttpSecurity para configurar la seguridad web.
-     * @return El filtro de seguridad {@link SecurityFilterChain} configurado.
-     * @throws Exception Si ocurre algún error en la configuración.
+     * @param http Objeto HttpSecurity de Spring.
+     * @return El {@link SecurityFilterChain} configurado para /oauth2.
+     * @throws Exception Si ocurre un error en la configuración.
+     */
+    @Bean
+    @Order(1)
+    public SecurityFilterChain oauth2FilterChain(HttpSecurity http) throws Exception {
+        http
+            .securityMatcher("/oauth2/**")
+            .csrf(csrf -> csrf.disable())
+            .cors(Customizer.withDefaults())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/oauth2/token").permitAll()
+                .anyRequest().denyAll()
+            );
+
+        return http.build();
+    }
+
+    /**
+     * Cadena de filtros de seguridad para los endpoints {@code /v1/**}.
+     * Define rutas públicas de autenticación y exige JWT para cualquier otra ruta.
+     *
+     * @param http Objeto HttpSecurity de Spring.
+     * @return El {@link SecurityFilterChain} configurado para /v1.
+     * @throws Exception Si ocurre un error en la configuración.
      */
     @Bean
     @Order(2)
@@ -46,7 +67,6 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(
-                    "/v1/auth/token",
                     "/v1/auth/register",
                     "/v1/auth/verify-email",
                     "/v1/auth/resend-verification",
@@ -64,10 +84,9 @@ public class SecurityConfig {
     }
 
     /**
-     * Define el PasswordEncoder para cifrar de forma segura las contraseñas de los usuarios.
-     * Utiliza el algoritmo BCrypt con una fuerza de hash (strength/work factor) establecida en 12.
+     * Define el PasswordEncoder para cifrar las contraseñas con BCrypt (strength 12).
      *
-     * @return El codificador {@link PasswordEncoder} configurado.
+     * @return El {@link PasswordEncoder} configurado.
      */
     @Bean
     public PasswordEncoder passwordEncoder() {

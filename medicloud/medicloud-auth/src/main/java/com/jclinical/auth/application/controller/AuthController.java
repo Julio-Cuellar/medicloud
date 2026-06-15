@@ -11,11 +11,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -23,7 +25,8 @@ import java.util.UUID;
  * Controlador REST para gestionar la autenticación tradicional del usuario.
  * <p>
  * Proporciona endpoints para registro, verificación de correo, cierre de sesión,
- * y recuperación/cambio de contraseñas.
+ * recuperación/cambio de contraseñas, perfil de usuario, subida de avatar y
+ * aceptación de invitaciones de staff.
  * </p>
  */
 @RestController
@@ -36,13 +39,15 @@ public class AuthController {
     private final AuthenticationService authenticationService;
     private final PasswordService passwordService;
     private final ProfileService profileService;
+    private final AvatarService avatarService;
+    private final StaffService staffService;
     private final UserRepository userRepository;
 
     /**
      * Registra un nuevo usuario en el sistema.
      *
      * @param request Datos del registro del usuario.
-     * @return Respuesta que contiene un mensaje de confirmación de registro.
+     * @return ApiResponse con confirmación.
      */
     @PostMapping("/register")
     public ApiResponse<MessageResponse> register(@RequestBody RegisterRequest request) {
@@ -52,8 +57,8 @@ public class AuthController {
     /**
      * Verifica la dirección de correo electrónico del usuario mediante un token.
      *
-     * @param request Datos para la verificación del correo (email y token).
-     * @return Respuesta que contiene detalles del resultado de la verificación.
+     * @param request Datos para la verificación del correo (token de verificación).
+     * @return ApiResponse con detalles de verificación.
      */
     @PostMapping("/verify-email")
     public ApiResponse<VerifyEmailResponse> verifyEmail(@RequestBody VerifyEmailRequest request) {
@@ -63,8 +68,8 @@ public class AuthController {
     /**
      * Reenvía el correo de verificación al usuario.
      *
-     * @param request Datos de la solicitud de reenvío de verificación.
-     * @return Respuesta que contiene un mensaje confirmando el envío.
+     * @param request Datos de la solicitud de reenvío de verificación (email).
+     * @return ApiResponse con confirmación.
      */
     @PostMapping("/resend-verification")
     public ApiResponse<MessageResponse> resendVerification(@RequestBody ResendVerificationRequest request) {
@@ -107,8 +112,8 @@ public class AuthController {
     /**
      * Solicita el restablecimiento de contraseña enviando un correo con un token seguro.
      *
-     * @param request Datos de la solicitud de restablecimiento (contiene el correo).
-     * @return Respuesta que contiene un mensaje de confirmación de envío.
+     * @param request Datos de la solicitud de restablecimiento (correo electrónico).
+     * @return ApiResponse con confirmación.
      */
     @PostMapping("/request-password-reset")
     public ApiResponse<MessageResponse> requestPasswordReset(@RequestBody ResendVerificationRequest request) {
@@ -119,7 +124,7 @@ public class AuthController {
      * Restablece la contraseña del usuario utilizando un token de restablecimiento válido.
      *
      * @param request Datos para restablecer la contraseña (token y nueva contraseña).
-     * @return Respuesta que contiene un mensaje del resultado de la operación.
+     * @return ApiResponse con resultado.
      */
     @PostMapping("/reset-password")
     public ApiResponse<MessageResponse> resetPassword(@RequestBody ResetPasswordRequest request) {
@@ -131,8 +136,8 @@ public class AuthController {
      *
      * @param jwt                Token JWT autenticado del usuario.
      * @param request            Datos del cambio de contraseña (contraseña actual y nueva).
-     * @param cookieRefreshToken Token de refresco de la sesión actual, opcional para invalidación o validación.
-     * @return Respuesta que contiene un mensaje confirmando el cambio.
+     * @param cookieRefreshToken Token de refresco de la sesión actual (para preservarla).
+     * @return ApiResponse con confirmación.
      */
     @PostMapping("/change-password")
     public ApiResponse<MessageResponse> changePassword(
@@ -149,7 +154,7 @@ public class AuthController {
      * Obtiene el perfil detallado del usuario autenticado actual.
      *
      * @param jwt Token JWT autenticado del usuario.
-     * @return Respuesta con el perfil del usuario.
+     * @return ApiResponse con perfil.
      */
     @GetMapping("/me")
     public ApiResponse<UserResponse> me(@AuthenticationPrincipal Jwt jwt) {
@@ -163,8 +168,8 @@ public class AuthController {
      * Actualiza el perfil del usuario autenticado actual.
      *
      * @param jwt     Token JWT autenticado del usuario.
-     * @param request Datos de actualización del usuario.
-     * @return Respuesta con el perfil actualizado.
+     * @param request Datos de actualización del usuario (nombre, teléfono, tema).
+     * @return ApiResponse con perfil actualizado.
      */
     @PatchMapping("/me")
     public ApiResponse<UserResponse> updateMe(
@@ -177,10 +182,43 @@ public class AuthController {
     }
 
     /**
+     * Sube o reemplaza el avatar del usuario autenticado.
+     *
+     * @param jwt  Token JWT autenticado del usuario.
+     * @param file Imagen del avatar (JPG, PNG o WebP, máximo 2 MB).
+     * @return ApiResponse con el avatar subido.
+     */
+    @PostMapping(value = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<AvatarResponse> uploadAvatar(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestPart("file") MultipartFile file) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new MedicloudException("Usuario no encontrado", ErrorCodes.RESOURCE_NOT_FOUND, 404));
+        return ApiResponse.success(avatarService.uploadAvatar(user, file));
+    }
+
+    /**
+     * Acepta una invitación de staff para unirse a una clínica.
+     *
+     * @param request  Datos de la invitación (token e, opcionalmente, contraseña).
+     * @param response Objeto de respuesta HTTP para establecer la cookie de refresco.
+     * @return ApiResponse con la aceptación.
+     */
+    @PostMapping("/accept-invitation")
+    public ApiResponse<AcceptInvitationResponse> acceptInvitation(
+            @RequestBody AcceptInvitationRequest request,
+            HttpServletResponse response) {
+        AcceptInvitationResponse result = staffService.acceptInvitation(request);
+        setRefreshTokenCookie(response, result.getRefreshToken());
+        return ApiResponse.success(result);
+    }
+
+    /**
      * Configura la cookie HttpOnly para el refresh token.
      *
-     * @param response           Objeto HttpServletResponse para agregar la cabecera del cookie.
-     * @param refreshTokenValue Valor del refresh token. Si es nulo, se limpia la cookie.
+     * @param response           Objeto HttpServletResponse para agregar la cabecera Set-Cookie.
+     * @param refreshTokenValue Valor del refresh token. Si es nulo o vacío, limpia la cookie.
      */
     private void setRefreshTokenCookie(HttpServletResponse response, String refreshTokenValue) {
         ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshTokenValue != null ? refreshTokenValue : "")

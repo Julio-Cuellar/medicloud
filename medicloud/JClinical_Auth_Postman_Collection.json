@@ -2,68 +2,47 @@
 	"info": {
 		"_postman_id": "c1387d81-8b92-4e44-8d4b-77e8a93cb3b5",
 		"name": "JClinical - Módulo 01 Auth",
-		"description": "Colección de Postman para probar el Módulo 01 de Autenticación y Sesión de JClinical (Medicloud). Incluye variables de entorno rápidas para simplificar el flujo.",
+		"description": "Colección para probar el Módulo 01 Auth v2.1. Ejecutar en orden numérico dentro de cada carpeta. El script de test de Login guarda access_token y user_id en variables globales.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "Públicos",
+			"name": "01 · Registro y Verificación",
 			"item": [
 				{
-					"name": "1. Registro de Administrador",
+					"name": "1. Registrar Administrador",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"full_name\": \"Dr. Roberto García\",\n  \"email\": \"dr.garcia@clinica.com\",\n  \"phone\": \"+525512345678\",\n  \"password\": \"ContraseñaSegura1\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"options": { "raw": { "language": "json" } }
 						},
 						"url": {
 							"raw": "{{base_url}}/v1/auth/register",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"v1",
-								"auth",
-								"register"
-							]
-						},
-						"description": "Registra un nuevo usuario dueño de clínica. El correo se envía de manera simulada con el token de verificación."
+							"host": ["{{base_url}}"],
+							"path": ["v1", "auth", "register"]
+						}
 					},
 					"response": []
 				},
 				{
-					"name": "2. Verificación de Correo",
+					"name": "2. Verificar Correo",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"token\": \"token-obtenido-del-log-de-consola\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"token\": \"PEGAR_TOKEN_DEL_LOG\"\n}",
+							"options": { "raw": { "language": "json" } }
 						},
 						"url": {
 							"raw": "{{base_url}}/v1/auth/verify-email",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"v1",
-								"auth",
-								"verify-email"
-							]
+							"host": ["{{base_url}}"],
+							"path": ["v1", "auth", "verify-email"]
 						},
-						"description": "Verifica la cuenta del usuario utilizando el token recibido. Tras esto, la cuenta queda activa para inicio de sesión."
+						"description": "Token visible en los logs de la app (INFO)."
 					},
 					"response": []
 				},
@@ -75,42 +54,36 @@
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"email\": \"dr.garcia@clinica.com\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"options": { "raw": { "language": "json" } }
 						},
 						"url": {
 							"raw": "{{base_url}}/v1/auth/resend-verification",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"v1",
-								"auth",
-								"resend-verification"
-							]
-						},
-						"description": "Reenvía el enlace de verificación en caso de haber expirado el token inicial (24h de validez)."
+							"host": ["{{base_url}}"],
+							"path": ["v1", "auth", "resend-verification"]
+						}
 					},
 					"response": []
-				},
+				}
+			]
+		},
+		{
+			"name": "02 · Sesión OAuth2",
+			"item": [
 				{
-					"name": "4. Login (Password Grant)",
+					"name": "4. Login (password grant)",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"var jsonData = pm.response.json();",
-									"if (jsonData.data && jsonData.data.access_token) {",
-									"    pm.globals.set(\"access_token\", jsonData.data.access_token);",
-									"    pm.globals.set(\"user_id\", jsonData.data.user.id);",
+									"var j = pm.response.json();",
+									"if (j.data && j.data.access_token) {",
+									"    pm.globals.set('access_token', j.data.access_token);",
+									"    pm.globals.set('user_id', j.data.user.id);",
+									"    console.log('access_token guardado');",
 									"}"
 								],
-								"type": "text/javascript",
-								"packages": {}
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -120,39 +93,17 @@
 						"body": {
 							"mode": "urlencoded",
 							"urlencoded": [
-								{
-									"key": "grant_type",
-									"value": "password",
-									"type": "text"
-								},
-								{
-									"key": "username",
-									"value": "dr.garcia@clinica.com",
-									"type": "text"
-								},
-								{
-									"key": "password",
-									"value": "ContraseñaSegura1",
-									"type": "text"
-								},
-								{
-									"key": "scope",
-									"value": "openid profile",
-									"type": "text"
-								}
+								{ "key": "grant_type", "value": "password", "type": "text" },
+								{ "key": "username",   "value": "dr.garcia@clinica.com", "type": "text" },
+								{ "key": "password",   "value": "ContraseñaSegura1", "type": "text" }
 							]
 						},
 						"url": {
 							"raw": "{{base_url}}/oauth2/token",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"oauth2",
-								"token"
-							]
+							"host": ["{{base_url}}"],
+							"path": ["oauth2", "token"]
 						},
-						"description": "Autentica al usuario y guarda automáticamente el access_token en variables globales de Postman para las peticiones subsecuentes."
+						"description": "Guarda access_token y user_id en globals."
 					},
 					"response": []
 				},
@@ -163,13 +114,13 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"var jsonData = pm.response.json();",
-									"if (jsonData.data && jsonData.data.access_token) {",
-									"    pm.globals.set(\"access_token\", jsonData.data.access_token);",
+									"var j = pm.response.json();",
+									"if (j.data && j.data.access_token) {",
+									"    pm.globals.set('access_token', j.data.access_token);",
+									"    console.log('access_token rotado');",
 									"}"
 								],
-								"type": "text/javascript",
-								"packages": {}
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -179,255 +130,549 @@
 						"body": {
 							"mode": "urlencoded",
 							"urlencoded": [
-								{
-									"key": "grant_type",
-									"value": "refresh_token",
-									"type": "text"
-								}
+								{ "key": "grant_type", "value": "refresh_token", "type": "text" }
 							]
 						},
 						"url": {
 							"raw": "{{base_url}}/oauth2/token",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"oauth2",
-								"token"
-							]
+							"host": ["{{base_url}}"],
+							"path": ["oauth2", "token"]
 						},
-						"description": "Refresca el access_token. Requiere la cookie 'refresh_token' (Postman la gestiona de forma automática tras el login)."
+						"description": "Postman envía automáticamente la cookie refresh_token."
 					},
 					"response": []
 				},
 				{
-					"name": "6. Solicitar Recuperación Contraseña",
+					"name": "5b. Refresh Token — grant inválido (esperado 422)",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"email\": \"dr.garcia@clinica.com\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/v1/auth/request-password-reset",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"v1",
-								"auth",
-								"request-password-reset"
+							"mode": "urlencoded",
+							"urlencoded": [
+								{ "key": "grant_type", "value": "authorization_code", "type": "text" }
 							]
 						},
-						"description": "Genera un token temporal para iniciar el restablecimiento de la contraseña si se olvidó."
+						"url": {
+							"raw": "{{base_url}}/oauth2/token",
+							"host": ["{{base_url}}"],
+							"path": ["oauth2", "token"]
+						},
+						"description": "Debe devolver 422 con error.code = VALIDATION_ERROR."
 					},
 					"response": []
 				},
 				{
-					"name": "7. Restablecer Contraseña con Token",
+					"name": "6. Logout (sesión actual)",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+						},
 						"method": "POST",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"token\": \"token-obtenido-del-log-de-consola\",\n  \"new_password\": \"NuevaContrasenaSegura2\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
 						"url": {
-							"raw": "{{base_url}}/v1/auth/reset-password",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"v1",
-								"auth",
-								"reset-password"
-							]
+							"raw": "{{base_url}}/v1/auth/logout",
+							"host": ["{{base_url}}"],
+							"path": ["v1", "auth", "logout"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "7. Logout All (todas las sesiones)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
 						},
-						"description": "Establece la nueva contraseña usando el token temporal recibido."
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/auth/logout-all",
+							"host": ["{{base_url}}"],
+							"path": ["v1", "auth", "logout-all"]
+						}
 					},
 					"response": []
 				}
 			]
 		},
 		{
-			"name": "Privados (Autenticados)",
+			"name": "03 · Perfil de Usuario",
 			"item": [
 				{
-					"name": "1. Obtener mi Perfil",
+					"name": "8. GET /me",
 					"request": {
 						"auth": {
 							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{access_token}}",
-									"type": "string"
-								}
-							]
+							"bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
 						},
 						"method": "GET",
 						"header": [],
 						"url": {
 							"raw": "{{base_url}}/v1/auth/me",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"v1",
-								"auth",
-								"me"
-							]
-						},
-						"description": "Consulta el perfil del usuario actualmente autenticado (datos generales, preferencias y clínicas vinculadas)."
+							"host": ["{{base_url}}"],
+							"path": ["v1", "auth", "me"]
+						}
 					},
 					"response": []
 				},
 				{
-					"name": "2. Actualizar mi Perfil",
+					"name": "9. PATCH /me",
 					"request": {
 						"auth": {
 							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{access_token}}",
-									"type": "string"
-								}
-							]
+							"bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
 						},
 						"method": "PATCH",
 						"header": [],
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"full_name\": \"Dr. Roberto García López\",\n  \"phone\": \"+525598765432\",\n  \"theme_preference\": \"dark\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"options": { "raw": { "language": "json" } }
 						},
 						"url": {
 							"raw": "{{base_url}}/v1/auth/me",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"v1",
-								"auth",
-								"me"
-							]
-						},
-						"description": "Actualiza el nombre, teléfono y preferencia de tema del usuario logueado."
+							"host": ["{{base_url}}"],
+							"path": ["v1", "auth", "me"]
+						}
 					},
 					"response": []
 				},
 				{
-					"name": "3. Cambiar Contraseña (Con Sesión)",
+					"name": "10. POST /me/avatar — JPG válido",
 					"request": {
 						"auth": {
 							"type": "bearer",
-							"bearer": [
+							"bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
 								{
-									"key": "token",
-									"value": "{{access_token}}",
-									"type": "string"
+									"key": "file",
+									"type": "file",
+									"src": [],
+									"description": "Seleccionar un JPG/PNG/WebP < 2 MB"
 								}
 							]
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/auth/me/avatar",
+							"host": ["{{base_url}}"],
+							"path": ["v1", "auth", "me", "avatar"]
+						},
+						"description": "Espera 200 con avatar_url y avatar_url_small."
+					},
+					"response": []
+				},
+				{
+					"name": "10b. POST /me/avatar — archivo inválido (esperado 422)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": [],
+									"description": "Subir un .txt o .pdf para probar INVALID_FILE_TYPE"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/auth/me/avatar",
+							"host": ["{{base_url}}"],
+							"path": ["v1", "auth", "me", "avatar"]
+						},
+						"description": "Debe devolver 422 con error.code = INVALID_FILE_TYPE."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "04 · Contraseñas",
+			"item": [
+				{
+					"name": "11. Cambiar Contraseña (preserva sesión)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
 						},
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"current_password\": \"ContraseñaSegura1\",\n  \"new_password\": \"NuevaContrasenaSegura3\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"current_password\": \"ContraseñaSegura1\",\n  \"new_password\": \"NuevaContrasena2025!\"\n}",
+							"options": { "raw": { "language": "json" } }
 						},
 						"url": {
 							"raw": "{{base_url}}/v1/auth/change-password",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"v1",
-								"auth",
-								"change-password"
-							]
+							"host": ["{{base_url}}"],
+							"path": ["v1", "auth", "change-password"]
 						},
-						"description": "Cambia la contraseña del usuario actual. Requiere confirmación de la contraseña en uso."
+						"description": "Revoca otras sesiones pero NO la actual (verificar que el mismo access_token siga válido después)."
 					},
 					"response": []
 				},
 				{
-					"name": "4. Cerrar Sesión (Logout)",
+					"name": "12. Solicitar Reset de Contraseña",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{access_token}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [],
-						"url": {
-							"raw": "{{base_url}}/v1/auth/logout",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"v1",
-								"auth",
-								"logout"
-							]
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"dr.garcia@clinica.com\"\n}",
+							"options": { "raw": { "language": "json" } }
 						},
-						"description": "Revoca el refresh token de la sesión activa y elimina las cookies."
+						"url": {
+							"raw": "{{base_url}}/v1/auth/request-password-reset",
+							"host": ["{{base_url}}"],
+							"path": ["v1", "auth", "request-password-reset"]
+						}
 					},
 					"response": []
 				},
 				{
-					"name": "5. Cerrar Todas las Sesiones (Logout All)",
+					"name": "13. Restablecer Contraseña con Token",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"PEGAR_TOKEN_DEL_LOG\",\n  \"new_password\": \"ContraseñaSegura1\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/auth/reset-password",
+							"host": ["{{base_url}}"],
+							"path": ["v1", "auth", "reset-password"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "05 · Staff — Invitación y Aceptación",
+			"item": [
+				{
+					"name": "14. POST /staff/invite — Doctor con cédula",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var j = pm.response.json();",
+									"console.log('Buscar invitation_token en los logs del servidor');",
+									"console.log(JSON.stringify(j, null, 2));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"auth": {
 							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{access_token}}",
-									"type": "string"
-								}
-							]
+							"bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
 						},
 						"method": "POST",
-						"header": [],
+						"header": [
+							{ "key": "X-Clinic-ID", "value": "{{clinic_id}}", "type": "text" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"dra.perez@clinica.com\",\n  \"full_name\": \"Dra. Ana Pérez\",\n  \"role\": \"doctor\",\n  \"doctor_credentials\": {\n    \"universidad_egreso\": \"UNAM\",\n    \"anio_egreso\": 2015,\n    \"especialidad\": \"Medicina General\",\n    \"cedula_profesional\": \"12345678\"\n  }\n}",
+							"options": { "raw": { "language": "json" } }
+						},
 						"url": {
-							"raw": "{{base_url}}/v1/auth/logout-all",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"v1",
-								"auth",
-								"logout-all"
+							"raw": "{{base_url}}/v1/staff/invite",
+							"host": ["{{base_url}}"],
+							"path": ["v1", "staff", "invite"]
+						},
+						"description": "Requiere header X-Clinic-ID. Guarda el invitation_token del log para el paso 16."
+					},
+					"response": []
+				},
+				{
+					"name": "14b. POST /staff/invite — Doctor SIN credenciales (esperado 422)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+						},
+						"method": "POST",
+						"header": [
+							{ "key": "X-Clinic-ID", "value": "{{clinic_id}}", "type": "text" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"doctor.sin.credenciales@clinica.com\",\n  \"full_name\": \"Doctor Sin Credenciales\",\n  \"role\": \"doctor\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/staff/invite",
+							"host": ["{{base_url}}"],
+							"path": ["v1", "staff", "invite"]
+						},
+						"description": "Debe devolver 422 con error.code = DOCTOR_CREDENTIAL_REQUIRED."
+					},
+					"response": []
+				},
+				{
+					"name": "14c. POST /staff/invite — Recepcionista (sin credenciales)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+						},
+						"method": "POST",
+						"header": [
+							{ "key": "X-Clinic-ID", "value": "{{clinic_id}}", "type": "text" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"recepcion@clinica.com\",\n  \"full_name\": \"María Recepción\",\n  \"role\": \"receptionist\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/staff/invite",
+							"host": ["{{base_url}}"],
+							"path": ["v1", "staff", "invite"]
+						},
+						"description": "Roles no-doctor no requieren doctor_credentials."
+					},
+					"response": []
+				},
+				{
+					"name": "15. POST /auth/accept-invitation — Escenario A (usuario nuevo)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var j = pm.response.json();",
+									"if (j.data && j.data.access_token) {",
+									"    pm.globals.set('staff_access_token', j.data.access_token);",
+									"    if (j.data.user && j.data.user.clinics && j.data.user.clinics.length > 0) {",
+									"        pm.globals.set('staff_id', j.data.user.clinics[0].staff_id);",
+									"    }",
+									"    console.log('staff_access_token guardado');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"invitation_token\": \"PEGAR_TOKEN_DEL_LOG\",\n  \"password\": \"ContraseñaDoctor2025!\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/auth/accept-invitation",
+							"host": ["{{base_url}}"],
+							"path": ["v1", "auth", "accept-invitation"]
+						},
+						"description": "Email del token no existe en el sistema: crea usuario con la contraseña proporcionada."
+					},
+					"response": []
+				},
+				{
+					"name": "15b. POST /auth/accept-invitation — Escenario B (usuario existente)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"invitation_token\": \"PEGAR_TOKEN_DEL_LOG_RECEPCIONISTA\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/auth/accept-invitation",
+							"host": ["{{base_url}}"],
+							"path": ["v1", "auth", "accept-invitation"]
+						},
+						"description": "Email del token ya existe: solo se vincula la clínica. Sin campo password."
+					},
+					"response": []
+				},
+				{
+					"name": "15c. POST /auth/accept-invitation — token inválido (esperado 401)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"invitation_token\": \"token-que-no-existe\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/auth/accept-invitation",
+							"host": ["{{base_url}}"],
+							"path": ["v1", "auth", "accept-invitation"]
+						},
+						"description": "Debe devolver 401 con error.code = INVITATION_TOKEN_INVALID."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "06 · Staff — Perfil y Credenciales",
+			"item": [
+				{
+					"name": "16. GET /staff/{id} — Doctor (con doctor_credentials)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var j = pm.response.json();",
+									"if (j.data && j.data.id) {",
+									"    pm.globals.set('staff_id', j.data.id);",
+									"    console.log('staff_id guardado:', j.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+						},
+						"method": "GET",
+						"header": [
+							{ "key": "X-Clinic-ID", "value": "{{clinic_id}}", "type": "text" }
+						],
+						"url": {
+							"raw": "{{base_url}}/v1/staff/{{staff_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["v1", "staff", "{{staff_id}}"]
+						},
+						"description": "Debe incluir doctor_credentials con credential_status."
+					},
+					"response": []
+				},
+				{
+					"name": "17. PATCH /staff/{id}/credentials/verify",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+						},
+						"method": "PATCH",
+						"header": [
+							{ "key": "X-Clinic-ID", "value": "{{clinic_id}}", "type": "text" }
+						],
+						"url": {
+							"raw": "{{base_url}}/v1/staff/{{staff_id}}/credentials/verify",
+							"host": ["{{base_url}}"],
+							"path": ["v1", "staff", "{{staff_id}}", "credentials", "verify"]
+						},
+						"description": "Marca las credenciales como verificadas. Responde con credential_status y verified_at."
+					},
+					"response": []
+				},
+				{
+					"name": "17b. PATCH credentials/verify — no es doctor (esperado 422)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+						},
+						"method": "PATCH",
+						"header": [
+							{ "key": "X-Clinic-ID", "value": "{{clinic_id}}", "type": "text" }
+						],
+						"url": {
+							"raw": "{{base_url}}/v1/staff/{{receptionist_staff_id}}/credentials/verify",
+							"host": ["{{base_url}}"],
+							"path": ["v1", "staff", "{{receptionist_staff_id}}", "credentials", "verify"]
+						},
+						"description": "Usar el staff_id de la recepcionista. Debe devolver 422 STAFF_NOT_A_DOCTOR."
+					},
+					"response": []
+				},
+				{
+					"name": "17c. GET /staff/{id} — después de verificar (credential_status actualizado)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+						},
+						"method": "GET",
+						"header": [
+							{ "key": "X-Clinic-ID", "value": "{{clinic_id}}", "type": "text" }
+						],
+						"url": {
+							"raw": "{{base_url}}/v1/staff/{{staff_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["v1", "staff", "{{staff_id}}"]
+						},
+						"description": "Verificar que verified_at esté poblado y credential_status sea 'activo'."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "07 · Errores — Validaciones de Contrato",
+			"item": [
+				{
+					"name": "E1. Error genérico — campo request_id en snake_case",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"token-inexistente\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/auth/verify-email",
+							"host": ["{{base_url}}"],
+							"path": ["v1", "auth", "verify-email"]
+						},
+						"description": "Verificar que la respuesta de error tenga error.request_id (snake_case), no requestId."
+					},
+					"response": []
+				},
+				{
+					"name": "E2. Login — credenciales incorrectas (esperado 401)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{ "key": "grant_type", "value": "password", "type": "text" },
+								{ "key": "username",   "value": "dr.garcia@clinica.com", "type": "text" },
+								{ "key": "password",   "value": "contrasenaMal", "type": "text" }
 							]
 						},
-						"description": "Revoca todos los refresh tokens asociados a la cuenta del usuario en cualquier dispositivo."
+						"url": {
+							"raw": "{{base_url}}/oauth2/token",
+							"host": ["{{base_url}}"],
+							"path": ["oauth2", "token"]
+						},
+						"description": "Debe devolver 401 INVALID_CREDENTIALS."
 					},
 					"response": []
 				}
@@ -437,8 +682,31 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "http://localhost:8080",
+			"value": "http://localhost:8080/api",
 			"type": "string"
+		},
+		{
+			"key": "clinic_id",
+			"value": "REEMPLAZAR_CON_UUID_DE_CLINICA",
+			"type": "string",
+			"description": "UUID de la clínica activa. Obtenerlo de la respuesta de /me tras el login."
+		},
+		{
+			"key": "staff_id",
+			"value": "",
+			"type": "string",
+			"description": "Se llena automáticamente por el script de test del paso 16."
+		},
+		{
+			"key": "receptionist_staff_id",
+			"value": "REEMPLAZAR_CON_UUID_RECEPCIONISTA",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string",
+			"description": "Se llena automáticamente en el paso 4 (Login)."
 		}
 	]
 }

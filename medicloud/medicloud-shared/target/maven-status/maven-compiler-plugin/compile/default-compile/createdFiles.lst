@@ -1,8 +1,0 @@
-com\jclinical\shared\domain\MedicloudException.class
-com\jclinical\shared\domain\ApiResponse.class
-com\jclinical\shared\domain\ResourceNotFoundException.class
-com\jclinical\shared\domain\ApiResponse$ApiResponseBuilder.class
-com\jclinical\shared\domain\ApiMeta.class
-com\jclinical\shared\domain\ValidationException.class
-com\jclinical\shared\domain\ApiMeta$ApiMetaBuilder.class
-com\jclinical\shared\domain\ErrorCodes.class

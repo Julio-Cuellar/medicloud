@@ -152,7 +152,17 @@ public class PasswordService {
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
 
-        refreshTokenRepository.deleteByUserId(user.getId());
+        // Revoca todos los tokens EXCEPTO el de la sesión activa (spec §POST /auth/change-password).
+        // Así el usuario actual no pierde su sesión al cambiar contraseña.
+        if (currentRawRefreshToken != null && !currentRawRefreshToken.isBlank()) {
+            String currentHash = tokenHelper.hashToken(currentRawRefreshToken);
+            refreshTokenRepository.findByTokenHash(currentHash).ifPresentOrElse(
+                current -> refreshTokenRepository.deleteByUserIdExcept(user.getId(), current.getId()),
+                () -> refreshTokenRepository.deleteByUserId(user.getId())
+            );
+        } else {
+            refreshTokenRepository.deleteByUserId(user.getId());
+        }
 
         log.info("Changed password for user: {}", user.getEmail());
         return new MessageResponse("Contraseña actualizada. Las otras sesiones activas han sido cerradas.");

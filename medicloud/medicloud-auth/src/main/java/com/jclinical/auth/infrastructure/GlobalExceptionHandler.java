@@ -1,5 +1,6 @@
 package com.jclinical.auth.infrastructure;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.jclinical.shared.domain.MedicloudException;
 import com.jclinical.shared.domain.ValidationException;
 import lombok.Builder;
@@ -126,6 +127,7 @@ public class GlobalExceptionHandler {
         private List<ErrorDetail> details;
 
         /** Identificador de la solicitud (Request ID) para fines de rastreo y soporte. */
+        @JsonProperty("request_id")
         private String requestId;
     }
 

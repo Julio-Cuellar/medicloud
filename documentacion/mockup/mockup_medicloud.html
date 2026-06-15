@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediCloud — Mockup UI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" rel="stylesheet" />
+
+  <link rel="stylesheet" href="mockup_medicloud.css" />
+</head>
+
+<body>
+
+  <div class="shell">
+
+    <!-- ── SIDEBAR ── -->
+    <div class="sidebar">
+      <div class="sb-logo">
+        <div class="sb-dot"></div>
+        <span class="sb-wordmark">MediCloud</span>
+      </div>
+
+      <div class="sb-section">Clínica</div>
+      <a class="sb-item active"><i class="ti ti-calendar" aria-hidden="true"></i>Agenda</a>
+      <a class="sb-item"><i class="ti ti-users" aria-hidden="true"></i>Pacientes</a>
+      <a class="sb-item"><i class="ti ti-file-text" aria-hidden="true"></i>Expediente</a>
+
+      <div class="sb-section">Administración</div>
+      <a class="sb-item"><i class="ti ti-cash" aria-hidden="true"></i>Caja</a>
+      <a class="sb-item"><i class="ti ti-package" aria-hidden="true"></i>Inventario</a>
+      <a class="sb-item"><i class="ti ti-chart-bar" aria-hidden="true"></i>Contabilidad</a>
+      <a class="sb-item"><i class="ti ti-users-group" aria-hidden="true"></i>Personal</a>
+
+      <a class="sb-item" style="margin-top:auto">
+        <i class="ti ti-settings" aria-hidden="true"></i>Configuración
+      </a>
+
+      <div class="sb-footer">
+        <div class="sb-avatar">JM</div>
+        <span class="sb-username">Dr. J. Morales</span>
+      </div>
+    </div>
+
+    <!-- ── ÁREA DE CONTENIDO ── -->
+    <div class="content-wrap">
+
+      <!-- TOPBAR -->
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-title">Agenda</div>
+          <div class="topbar-sub">Lunes 12 de junio, 2026</div>
+        </div>
+        <div class="topbar-actions">
+          <input class="input" placeholder="Buscar paciente..." style="width:200px" />
+          
+          <div class="view-toggle">
+            <button id="view-list-btn" class="view-toggle-btn active" title="Vista Lista">
+              <i class="ti ti-list" aria-hidden="true"></i>
+            </button>
+            <button id="view-calendar-btn" class="view-toggle-btn" title="Vista Calendario">
+              <i class="ti ti-calendar" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          <button id="theme-toggle" class="btn btn-ghost" aria-label="Cambiar tema">
+            <i class="ti ti-moon" id="theme-icon" aria-hidden="true"></i>
+          </button>
+          <button class="btn btn-primary"><i class="ti ti-plus" aria-hidden="true"></i>Nueva cita</button>
+        </div>
+      </div>
+
+      <!-- CUERPO -->
+      <div class="content-body">
+
+        <!-- Estadísticas -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Citas hoy</div>
+            <div class="stat-value">8</div>
+            <div class="stat-meta">↑ 2 respecto a ayer</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Confirmadas</div>
+            <div class="stat-value">6</div>
+            <div class="stat-meta">75% del total</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Ingresos estimados</div>
+            <div class="stat-value">$4,200</div>
+            <div class="stat-meta">↑ $800 vs semana pasada</div>
+          </div>
+        </div>
+
+        <!-- CONTENEDOR VISTA LISTA -->
+        <div id="agenda-list-view" class="agenda-view-content">
+          <div class="apt-card">
+            <div class="apt-time">09:00 — 09:45</div>
+            <div class="apt-info">
+              <div class="apt-name">Lucía Ramírez Torres</div>
+              <div class="apt-detail">Limpieza dental &nbsp;·&nbsp; Consultorio 1 &nbsp;·&nbsp; Dr. J. Morales</div>
+            </div>
+            <div class="apt-actions">
+              <span class="badge badge-ok">Confirmado</span>
+              <button class="btn btn-ghost" style="padding:5px 10px"><i class="ti ti-dots-vertical"
+                  aria-hidden="true"></i></button>
+            </div>
+          </div>
+
+          <div class="apt-card">
+            <div class="apt-time">10:30 — 11:30</div>
+            <div class="apt-info">
+              <div class="apt-name">Jorge Vega Hernández</div>
+              <div class="apt-detail">Ortodoncia &nbsp;·&nbsp; Consultorio 1 &nbsp;·&nbsp; Dr. J. Morales</div>
+            </div>
+            <div class="apt-actions">
+              <span class="badge badge-warn">Pendiente</span>
+              <button class="btn btn-ghost" style="padding:5px 10px"><i class="ti ti-dots-vertical"
+                  aria-hidden="true"></i></button>
+            </div>
+          </div>
+
+          <div class="apt-card">
+            <div class="apt-time">12:00 — 12:30</div>
+            <div class="apt-info">
+              <div class="apt-name">Ana Sofía Mendoza</div>
+              <div class="apt-detail">Consulta general &nbsp;·&nbsp; Consultorio 2 &nbsp;·&nbsp; Dr. J. Morales</div>
+            </div>
+            <div class="apt-actions">
+              <span class="badge badge-prog">En progreso</span>
+              <button class="btn btn-ghost" style="padding:5px 10px"><i class="ti ti-dots-vertical"
+                  aria-hidden="true"></i></button>
+            </div>
+          </div>
+
+          <div class="apt-card">
+            <div class="apt-time">13:30 — 14:00</div>
+            <div class="apt-info">
+              <div class="apt-name">Roberto Fuentes Díaz</div>
+              <div class="apt-detail">Radiografía &nbsp;·&nbsp; Consultorio 1 &nbsp;·&nbsp; Dr. J. Morales</div>
+            </div>
+            <div class="apt-actions">
+              <span class="badge badge-err">Cancelado</span>
+              <button class="btn btn-ghost" style="padding:5px 10px"><i class="ti ti-dots-vertical"
+                  aria-hidden="true"></i></button>
+            </div>
+          </div>
+
+          <div class="apt-card">
+            <div class="apt-time">15:00 — 16:00</div>
+            <div class="apt-info">
+              <div class="apt-name">María del Carmen López</div>
+              <div class="apt-detail">Revisión post-operatoria &nbsp;·&nbsp; Consultorio 2 &nbsp;·&nbsp; Dr. J. Morales
+              </div>
+            </div>
+            <div class="apt-actions">
+              <span class="badge badge-neutral">Agendado</span>
+              <button class="btn btn-ghost" style="padding:5px 10px"><i class="ti ti-dots-vertical"
+                  aria-hidden="true"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTENEDOR VISTA CALENDARIO -->
+        <div id="agenda-calendar-view" class="agenda-view-content" style="display: none;">
+          <div class="calendar-view">
+            <div class="calendar-header">
+              <div class="calendar-nav-title">Lunes 12 – Domingo 18 de junio, 2026</div>
+              <div class="calendar-nav-buttons">
+                <button class="btn btn-ghost" style="padding: 4px 8px;" aria-label="Semana anterior"><i class="ti ti-chevron-left"></i></button>
+                <button class="btn btn-ghost" style="padding: 4px 8px;" aria-label="Semana siguiente"><i class="ti ti-chevron-right"></i></button>
+              </div>
+            </div>
+            
+            <div class="calendar-grid">
+              <!-- Lunes -->
+              <div class="calendar-col today">
+                <div class="calendar-day-header">
+                  <div class="calendar-day-name">Lun</div>
+                  <div class="calendar-day-num">12</div>
+                </div>
+                <div class="calendar-events">
+                  <div class="cal-event confirmado">
+                    <div class="cal-event-time">09:00 - 09:45</div>
+                    <div class="cal-event-name">Lucía Ramírez T.</div>
+                  </div>
+                  <div class="cal-event pendiente">
+                    <div class="cal-event-time">10:30 - 11:30</div>
+                    <div class="cal-event-name">Jorge Vega H.</div>
+                  </div>
+                  <div class="cal-event progreso">
+                    <div class="cal-event-time">12:00 - 12:30</div>
+                    <div class="cal-event-name">Ana Sofía M.</div>
+                  </div>
+                  <div class="cal-event cancelado">
+                    <div class="cal-event-time">13:30 - 14:00</div>
+                    <div class="cal-event-name">Roberto Fuentes D.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Martes -->
+              <div class="calendar-col">
+                <div class="calendar-day-header">
+                  <div class="calendar-day-name">Mar</div>
+                  <div class="calendar-day-num">13</div>
+                </div>
+                <div class="calendar-events">
+                  <div class="cal-event neutral">
+                    <div class="cal-event-time">15:00 - 16:00</div>
+                    <div class="cal-event-name">María del Carmen L.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Miércoles -->
+              <div class="calendar-col">
+                <div class="calendar-day-header">
+                  <div class="calendar-day-name">Mié</div>
+                  <div class="calendar-day-num">14</div>
+                </div>
+                <div class="calendar-events">
+                  <div class="cal-event confirmado">
+                    <div class="cal-event-time">11:00 - 12:00</div>
+                    <div class="cal-event-name">Carlos Ruiz P.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Jueves -->
+              <div class="calendar-col">
+                <div class="calendar-day-header">
+                  <div class="calendar-day-name">Jue</div>
+                  <div class="calendar-day-num">15</div>
+                </div>
+                <div class="calendar-events">
+                  <div class="cal-event pendiente">
+                    <div class="cal-event-time">16:30 - 17:30</div>
+                    <div class="cal-event-name">Elena Gómez S.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Viernes -->
+              <div class="calendar-col">
+                <div class="calendar-day-header">
+                  <div class="calendar-day-name">Vie</div>
+                  <div class="calendar-day-num">16</div>
+                </div>
+                <div class="calendar-events">
+                  <div class="cal-event progreso">
+                    <div class="cal-event-time">09:30 - 10:30</div>
+                    <div class="cal-event-name">Pedro Ortega L.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sábado -->
+              <div class="calendar-col">
+                <div class="calendar-day-header">
+                  <div class="calendar-day-name">Sáb</div>
+                  <div class="calendar-day-num">17</div>
+                </div>
+                <div class="calendar-events"></div>
+              </div>
+
+              <!-- Domingo -->
+              <div class="calendar-col">
+                <div class="calendar-day-header">
+                  <div class="calendar-day-name">Dom</div>
+                  <div class="calendar-day-num">18</div>
+                </div>
+                <div class="calendar-events"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /content-body -->
+
+      <!-- BARRA DE COMPONENTES DE REFERENCIA -->
+      <div class="comp-bar">
+        <span class="comp-bar-label">Botones:</span>
+        <button class="btn btn-primary">Primario</button>
+        <button class="btn btn-secondary">Secundario</button>
+        <button class="btn btn-ghost">Ghost</button>
+        <button class="btn btn-danger">Eliminar</button>
+        <span style="margin-left:8px" class="comp-bar-label">Badges:</span>
+        <span class="badge badge-ok">Confirmado</span>
+        <span class="badge badge-prog">En progreso</span>
+        <span class="badge badge-warn">Pendiente</span>
+        <span class="badge badge-err">Cancelado</span>
+      </div>
+
+    </div><!-- /content-wrap -->
+
+  </div><!-- /shell -->
+
+  <script>
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+
+    // Check saved theme or system preference
+    const savedTheme = localStorage.getItem('theme');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    let currentTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+    
+    // Apply theme
+    applyTheme(currentTheme);
+
+    themeToggle.addEventListener('click', () => {
+      currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+      applyTheme(currentTheme);
+      localStorage.setItem('theme', currentTheme);
+    });
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      if (theme === 'dark') {
+        themeIcon.className = 'ti ti-sun';
+      } else {
+        themeIcon.className = 'ti ti-moon';
+      }
+    }
+
+    // View Switcher logic
+    const viewListBtn = document.getElementById('view-list-btn');
+    const viewCalendarBtn = document.getElementById('view-calendar-btn');
+    const agendaListView = document.getElementById('agenda-list-view');
+    const agendaCalendarView = document.getElementById('agenda-calendar-view');
+
+    viewListBtn.addEventListener('click', () => {
+      viewListBtn.classList.add('active');
+      viewCalendarBtn.classList.remove('active');
+      agendaListView.style.display = '';
+      agendaCalendarView.style.display = 'none';
+    });
+
+    viewCalendarBtn.addEventListener('click', () => {
+      viewCalendarBtn.classList.add('active');
+      viewListBtn.classList.remove('active');
+      agendaListView.style.display = 'none';
+      agendaCalendarView.style.display = '';
+    });
+  </script>
+
+</body>
+
+</html>

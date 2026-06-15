@@ -1,0 +1,444 @@
+{
+	"info": {
+		"_postman_id": "c1387d81-8b92-4e44-8d4b-77e8a93cb3b5",
+		"name": "JClinical - Módulo 01 Auth",
+		"description": "Colección de Postman para probar el Módulo 01 de Autenticación y Sesión de JClinical (Medicloud). Incluye variables de entorno rápidas para simplificar el flujo.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Públicos",
+			"item": [
+				{
+					"name": "1. Registro de Administrador",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"full_name\": \"Dr. Roberto García\",\n  \"email\": \"dr.garcia@clinica.com\",\n  \"phone\": \"+525512345678\",\n  \"password\": \"ContraseñaSegura1\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"register"
+							]
+						},
+						"description": "Registra un nuevo usuario dueño de clínica. El correo se envía de manera simulada con el token de verificación."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Verificación de Correo",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"token-obtenido-del-log-de-consola\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/auth/verify-email",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"verify-email"
+							]
+						},
+						"description": "Verifica la cuenta del usuario utilizando el token recibido. Tras esto, la cuenta queda activa para inicio de sesión."
+					},
+					"response": []
+				},
+				{
+					"name": "3. Reenviar Verificación",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"dr.garcia@clinica.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/auth/resend-verification",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"resend-verification"
+							]
+						},
+						"description": "Reenvía el enlace de verificación en caso de haber expirado el token inicial (24h de validez)."
+					},
+					"response": []
+				},
+				{
+					"name": "4. Login (Password Grant)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.access_token) {",
+									"    pm.globals.set(\"access_token\", jsonData.data.access_token);",
+									"    pm.globals.set(\"user_id\", jsonData.data.user.id);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "password",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "dr.garcia@clinica.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "ContraseñaSegura1",
+									"type": "text"
+								},
+								{
+									"key": "scope",
+									"value": "openid profile",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/oauth2/token",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"oauth2",
+								"token"
+							]
+						},
+						"description": "Autentica al usuario y guarda automáticamente el access_token en variables globales de Postman para las peticiones subsecuentes."
+					},
+					"response": []
+				},
+				{
+					"name": "5. Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.access_token) {",
+									"    pm.globals.set(\"access_token\", jsonData.data.access_token);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "refresh_token",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/oauth2/token",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"oauth2",
+								"token"
+							]
+						},
+						"description": "Refresca el access_token. Requiere la cookie 'refresh_token' (Postman la gestiona de forma automática tras el login)."
+					},
+					"response": []
+				},
+				{
+					"name": "6. Solicitar Recuperación Contraseña",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"dr.garcia@clinica.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/auth/request-password-reset",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"request-password-reset"
+							]
+						},
+						"description": "Genera un token temporal para iniciar el restablecimiento de la contraseña si se olvidó."
+					},
+					"response": []
+				},
+				{
+					"name": "7. Restablecer Contraseña con Token",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"token-obtenido-del-log-de-consola\",\n  \"new_password\": \"NuevaContrasenaSegura2\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/auth/reset-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"reset-password"
+							]
+						},
+						"description": "Establece la nueva contraseña usando el token temporal recibido."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Privados (Autenticados)",
+			"item": [
+				{
+					"name": "1. Obtener mi Perfil",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/auth/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"me"
+							]
+						},
+						"description": "Consulta el perfil del usuario actualmente autenticado (datos generales, preferencias y clínicas vinculadas)."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Actualizar mi Perfil",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"full_name\": \"Dr. Roberto García López\",\n  \"phone\": \"+525598765432\",\n  \"theme_preference\": \"dark\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/auth/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"me"
+							]
+						},
+						"description": "Actualiza el nombre, teléfono y preferencia de tema del usuario logueado."
+					},
+					"response": []
+				},
+				{
+					"name": "3. Cambiar Contraseña (Con Sesión)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"current_password\": \"ContraseñaSegura1\",\n  \"new_password\": \"NuevaContrasenaSegura3\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/auth/change-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"change-password"
+							]
+						},
+						"description": "Cambia la contraseña del usuario actual. Requiere confirmación de la contraseña en uso."
+					},
+					"response": []
+				},
+				{
+					"name": "4. Cerrar Sesión (Logout)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"logout"
+							]
+						},
+						"description": "Revoca el refresh token de la sesión activa y elimina las cookies."
+					},
+					"response": []
+				},
+				{
+					"name": "5. Cerrar Todas las Sesiones (Logout All)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/auth/logout-all",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"logout-all"
+							]
+						},
+						"description": "Revoca todos los refresh tokens asociados a la cuenta del usuario en cualquier dispositivo."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}

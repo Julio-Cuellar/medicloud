@@ -18,11 +18,24 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.UUID;
 
+/**
+ * Clase de configuración para la criptografía y decodificación de tokens JWT.
+ * <p>
+ * Genera dinámicamente un par de claves RSA de 2048 bits para firmar y verificar tokens,
+ * y expone los beans de NimbusJwtEncoder y NimbusJwtDecoder para la seguridad de la API.
+ * </p>
+ */
 @Configuration
 public class AuthorizationServerConfig {
 
+    /** Par de claves criptográficas (pública/privada) utilizadas para firmar/verificar JWTs. */
     private final KeyPair keyPair;
 
+    /**
+     * Constructor que inicializa el par de claves RSA de 2048 bits de forma predeterminada al arrancar la aplicación.
+     *
+     * @throws IllegalStateException Si no se encuentra disponible el algoritmo RSA en el entorno.
+     */
     public AuthorizationServerConfig() {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
@@ -33,6 +46,11 @@ public class AuthorizationServerConfig {
         }
     }
 
+    /**
+     * Define la fuente de claves JWK (JSON Web Key) utilizando el par de claves RSA generado.
+     *
+     * @return El bean {@link JWKSource} con el conjunto de claves JWK configurado.
+     */
     @Bean
     public JWKSource<SecurityContext> jwkSource() {
         RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
@@ -45,11 +63,22 @@ public class AuthorizationServerConfig {
         return new ImmutableJWKSet<>(jwkSet);
     }
 
+    /**
+     * Define el codificador de tokens JWT utilizando la fuente JWK configurada.
+     *
+     * @param jwkSource Fuente de claves JWK.
+     * @return El bean {@link JwtEncoder} configurado.
+     */
     @Bean
     public JwtEncoder jwtEncoder(JWKSource<SecurityContext> jwkSource) {
         return new NimbusJwtEncoder(jwkSource);
     }
 
+    /**
+     * Define el decodificador de tokens JWT utilizando la clave pública RSA generada.
+     *
+     * @return El bean {@link JwtDecoder} configurado.
+     */
     @Bean
     public JwtDecoder jwtDecoder() {
         return NimbusJwtDecoder.withPublicKey((RSAPublicKey) keyPair.getPublic()).build();

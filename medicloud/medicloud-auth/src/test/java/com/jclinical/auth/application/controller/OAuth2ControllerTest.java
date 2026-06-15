@@ -22,6 +22,10 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Pruebas unitarias para el controlador {@link OAuth2Controller}.
+ * Valida los flujos de inicio de sesión y renovación utilizando MockMvc.
+ */
 @WebMvcTest(OAuth2Controller.class)
 @Import(SecurityConfig.class)
 public class OAuth2ControllerTest {
@@ -35,6 +39,11 @@ public class OAuth2ControllerTest {
     @MockBean
     private JwtDecoder jwtDecoder;
 
+    /**
+     * Prueba el flujo exitoso de inicio de sesión con grant type {@code password}.
+     *
+     * @throws Exception Si ocurre un error en la simulación de MockMvc.
+     */
     @Test
     public void testTokenPasswordGrantSuccess() throws Exception {
         UUID userId = UUID.randomUUID();
@@ -75,6 +84,11 @@ public class OAuth2ControllerTest {
                 .andExpect(header().string("Set-Cookie", org.hamcrest.Matchers.containsString("refresh_token=mock-refresh-token")));
     }
 
+    /**
+     * Prueba el flujo exitoso de renovación de sesión con grant type {@code refresh_token}.
+     *
+     * @throws Exception Si ocurre un error en la simulación de MockMvc.
+     */
     @Test
     public void testTokenRefreshTokenGrantSuccess() throws Exception {
         UUID userId = UUID.randomUUID();
@@ -110,6 +124,12 @@ public class OAuth2ControllerTest {
                 .andExpect(header().string("Set-Cookie", org.hamcrest.Matchers.containsString("refresh_token=new-mock-refresh-token")));
     }
 
+    /**
+     * Prueba que al proveer un tipo de grant no soportado (ej. {@code authorization_code})
+     * se retorne un error de validación 422.
+     *
+     * @throws Exception Si ocurre un error en la simulación de MockMvc.
+     */
     @Test
     public void testTokenInvalidGrantType() throws Exception {
         mockMvc.perform(post("/v1/auth/token")

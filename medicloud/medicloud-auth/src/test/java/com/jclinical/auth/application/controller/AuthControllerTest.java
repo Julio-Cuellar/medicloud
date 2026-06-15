@@ -25,6 +25,10 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Pruebas unitarias para el controlador {@link AuthController}.
+ * Utiliza MockMVC para simular peticiones HTTP y Mockito para mockear las dependencias de servicio.
+ */
 @WebMvcTest(AuthController.class)
 @Import(SecurityConfig.class)
 public class AuthControllerTest {
@@ -53,6 +57,11 @@ public class AuthControllerTest {
     @MockBean
     private JwtDecoder jwtDecoder;
 
+    /**
+     * Prueba que el registro de un nuevo usuario se realice de manera exitosa.
+     *
+     * @throws Exception Si ocurre un error en la simulación de MockMvc.
+     */
     @Test
     public void testRegisterSuccess() throws Exception {
         RegisterRequest request = new RegisterRequest();
@@ -72,6 +81,11 @@ public class AuthControllerTest {
                 .andExpect(jsonPath("$.data.message").value("Usuario registrado exitosamente"));
     }
 
+    /**
+     * Prueba que la verificación de correo electrónico se realice de manera exitosa.
+     *
+     * @throws Exception Si ocurre un error en la simulación de MockMvc.
+     */
     @Test
     public void testVerifyEmailSuccess() throws Exception {
         VerifyEmailRequest request = new VerifyEmailRequest();
@@ -90,6 +104,11 @@ public class AuthControllerTest {
                 .andExpect(jsonPath("$.data.message").value("Email verificado"));
     }
 
+    /**
+     * Prueba que el reenvío de correo de verificación de cuenta funcione correctamente.
+     *
+     * @throws Exception Si ocurre un error en la simulación de MockMvc.
+     */
     @Test
     public void testResendVerificationSuccess() throws Exception {
         ResendVerificationRequest request = new ResendVerificationRequest();
@@ -106,6 +125,11 @@ public class AuthControllerTest {
                 .andExpect(jsonPath("$.data.message").value("Verificación enviada"));
     }
 
+    /**
+     * Prueba que el cierre de sesión invalide el token de refresco provisto en la cookie.
+     *
+     * @throws Exception Si ocurre un error en la simulación de MockMvc.
+     */
     @Test
     public void testLogoutSuccess() throws Exception {
         mockMvc.perform(post("/v1/auth/logout")
@@ -117,6 +141,11 @@ public class AuthControllerTest {
         verify(authenticationService).logout("some-refresh-token");
     }
 
+    /**
+     * Prueba que el cierre de todas las sesiones de un usuario funcione de forma exitosa.
+     *
+     * @throws Exception Si ocurre un error en la simulación de MockMvc.
+     */
     @Test
     public void testLogoutAllSuccess() throws Exception {
         UUID userId = UUID.randomUUID();
@@ -128,6 +157,11 @@ public class AuthControllerTest {
         verify(authenticationService).logoutAll(userId);
     }
 
+    /**
+     * Prueba que la solicitud de restablecimiento de contraseña responda de manera exitosa.
+     *
+     * @throws Exception Si ocurre un error en la simulación de MockMvc.
+     */
     @Test
     public void testRequestPasswordResetSuccess() throws Exception {
         ResendVerificationRequest request = new ResendVerificationRequest();
@@ -144,6 +178,11 @@ public class AuthControllerTest {
                 .andExpect(jsonPath("$.data.message").value("Correo de recuperación enviado"));
     }
 
+    /**
+     * Prueba que el restablecimiento de contraseña funcione correctamente al proveer un token válido.
+     *
+     * @throws Exception Si ocurre un error en la simulación de MockMvc.
+     */
     @Test
     public void testResetPasswordSuccess() throws Exception {
         ResetPasswordRequest request = new ResetPasswordRequest();
@@ -161,6 +200,11 @@ public class AuthControllerTest {
                 .andExpect(jsonPath("$.data.message").value("Contraseña restablecida exitosamente"));
     }
 
+    /**
+     * Prueba que el cambio de contraseña para un usuario autenticado se ejecute exitosamente.
+     *
+     * @throws Exception Si ocurre un error en la simulación de MockMvc.
+     */
     @Test
     public void testChangePasswordSuccess() throws Exception {
         UUID userId = UUID.randomUUID();
@@ -188,6 +232,11 @@ public class AuthControllerTest {
                 .andExpect(jsonPath("$.data.message").value("Contraseña modificada exitosamente"));
     }
 
+    /**
+     * Prueba que la consulta del perfil del usuario autenticado (/me) responda exitosamente.
+     *
+     * @throws Exception Si ocurre un error en la simulación de MockMvc.
+     */
     @Test
     public void testMeSuccess() throws Exception {
         UUID userId = UUID.randomUUID();
@@ -213,6 +262,11 @@ public class AuthControllerTest {
                 .andExpect(jsonPath("$.data.full_name").value("Julio Cuellar"));
     }
 
+    /**
+     * Prueba que la modificación del perfil del usuario autenticado se procese exitosamente.
+     *
+     * @throws Exception Si ocurre un error en la simulación de MockMvc.
+     */
     @Test
     public void testUpdateMeSuccess() throws Exception {
         UUID userId = UUID.randomUUID();

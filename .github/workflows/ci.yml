@@ -1,3 +1,4 @@
+# Trigger workflow run
 name: Java CI with Maven
 
 on:

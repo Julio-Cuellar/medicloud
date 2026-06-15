@@ -1,4 +1,4 @@
-# Trigger workflow run - trial 3
+# Trigger workflow run - trial 4
 name: Java CI with Maven
 
 on:

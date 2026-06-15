@@ -154,7 +154,7 @@ public class PasswordService {
 
         refreshTokenRepository.deleteByUserId(user.getId());
 
-        log.info("Changed changed password for user: {}", user.getEmail());
+        log.info("Changed password for user: {}", user.getEmail());
         return new MessageResponse("Contraseña actualizada. Las otras sesiones activas han sido cerradas.");
     }
 }

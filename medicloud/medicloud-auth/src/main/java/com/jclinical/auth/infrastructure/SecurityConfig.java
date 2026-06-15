@@ -46,13 +46,13 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(
-                     "/v1/auth/token",
-                     "/v1/auth/register",
-                     "/v1/auth/verify-email",
-                     "/v1/auth/resend-verification",
-                     "/v1/auth/request-password-reset",
-                     "/v1/auth/reset-password",
-                     "/v1/auth/accept-invitation"
+                    "/v1/auth/token",
+                    "/v1/auth/register",
+                    "/v1/auth/verify-email",
+                    "/v1/auth/resend-verification",
+                    "/v1/auth/request-password-reset",
+                    "/v1/auth/reset-password",
+                    "/v1/auth/accept-invitation"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

@@ -1,0 +1,1740 @@
+{
+	"info": {
+		"_postman_id": "8ca0605a-2cb3-4876-92d5-e99d1b09b552",
+		"name": "Medicloud Users and Clinics API",
+		"description": "Colección de pruebas para el módulo de usuarios, onboarding y gestión de clínicas de Medicloud (Registro, Verificación, Login JWT, Perfil, Creación y Modificación de Clínicas)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Registrar Usuario",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 200 o 201 (Creado)\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+							"});",
+							"",
+							"pm.test(\"Retorna estructura de pre-registro inactivo\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"id\");",
+							"    pm.expect(jsonData.email).to.eql(\"doctor.jcuellar@gmail.com\");",
+							"    pm.expect(jsonData.emailVerified).to.be.false;",
+							"    pm.expect(jsonData.active).to.be.false;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"doctor.jcuellar@gmail.com\",\n  \"password\": \"SecurePassword123*\",\n  \"fullName\": \"Dr. Julio Cuellar\",\n  \"clinicName\": \"JClinical Medicloud\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8082/api/v1/users/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"register"
+					]
+				},
+				"description": "Endpoint para realizar el pre-registro temporal del representante legal. Guarda los datos temporalmente por 15 minutos."
+			},
+			"response": []
+		},
+		{
+			"name": "2. Verificar Correo",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 200 (OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Retorna mensaje de éxito\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.message).to.eql(\"Correo verificado exitosamente y cuenta activada\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"token\": \"INSERTA_AQUI_EL_TOKEN_DE_LA_BD\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8082/api/v1/users/verify-email",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"verify-email"
+					]
+				},
+				"description": "Endpoint para verificar el token de correo. Esto promueve el registro al listado real de usuarios activos e inicia de forma atómica el onboarding de la clínica."
+			},
+			"response": []
+		},
+		{
+			"name": "3. Iniciar Sesión (Login JWT)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 200 (OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Retorna token JWT y datos de usuario\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"token\");",
+							"    pm.expect(jsonData.tokenType).to.eql(\"Bearer\");",
+							"    pm.expect(jsonData.user.email).to.eql(\"doctor.jcuellar@gmail.com\");",
+							"    pm.expect(jsonData.user.active).to.be.true;",
+							"",
+							"    // Guardar token automáticamente para la petición GET /me",
+							"    pm.collectionVariables.set(\"jwt_token\", jsonData.token);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"doctor.jcuellar@gmail.com\",\n  \"password\": \"SecurePassword123*\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8082/api/v1/auth/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"auth",
+						"login"
+					]
+				},
+				"description": "Autentica al usuario activo y devuelve el token JWT."
+			},
+			"response": []
+		},
+		{
+			"name": "4. Obtener Perfil (GET /auth/me)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 200 (OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Retorna perfil de usuario con sus consultorios\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"id\");",
+							"    pm.expect(jsonData.email).to.eql(\"doctor.jcuellar@gmail.com\");",
+							"    pm.expect(jsonData.clinics).to.be.an(\"array\");",
+							"    pm.expect(jsonData.clinics[0].name).to.eql(\"JClinical Medicloud\");",
+							"",
+							"    // Guardar el ID de la clínica original para actualizarla",
+							"    if (jsonData.clinics && jsonData.clinics.length > 0) {",
+							"        pm.collectionVariables.set(\"clinic_original_id\", jsonData.clinics[0].id);",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/api/v1/auth/me",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"auth",
+						"me"
+					]
+				},
+				"description": "Obtiene la información del usuario autenticado junto con la lista de consultorios que le pertenecen."
+			},
+			"response": []
+		},
+		{
+			"name": "5. Crear Nueva Clínica",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 201 (Creado)\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"Retorna datos de la clínica creada\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"id\");",
+							"    pm.expect(jsonData.name).to.eql(\"JClinical Sucursal Centro\");",
+							"    pm.expect(jsonData.active).to.be.true;",
+							"    pm.expect(jsonData.ownerUserId).to.exist;",
+							"",
+							"    // Guardar ID de la sucursal para pruebas posteriores",
+							"    pm.collectionVariables.set(\"clinic_sucursal_id\", jsonData.id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"JClinical Sucursal Centro\",\n  \"email\": \"sucursal.centro@jclinical.com\",\n  \"timezone\": \"America/Mexico_City\",\n  \"legalName\": \"Servicios Medicos Centro S.A.\",\n  \"rfc\": \"SME120405ABC\",\n  \"taxRegimeCode\": \"601\",\n  \"addressStreet\": \"Av. Madero 120\",\n  \"addressColonia\": \"Centro\",\n  \"addressMunicipality\": \"Cuauhtemoc\",\n  \"addressState\": \"CDMX\",\n  \"addressZip\": \"06000\",\n  \"phone\": \"5512345678\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8082/api/v1/clinics",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"clinics"
+					]
+				},
+				"description": "Permite al usuario autenticado crear una clínica adicional."
+			},
+			"response": []
+		},
+		{
+			"name": "6. Completar/Modificar Clínica Original",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 200 (OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Retorna datos actualizados de la clínica\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.name).to.eql(\"JClinical Medicloud Corporativo\");",
+							"    pm.expect(jsonData.rfc).to.eql(\"MSM150910XYZ\");",
+							"    pm.expect(jsonData.legalName).to.eql(\"Medicloud Soluciones Medicas S.A. de C.V.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"JClinical Medicloud Corporativo\",\n  \"legalName\": \"Medicloud Soluciones Medicas S.A. de C.V.\",\n  \"rfc\": \"MSM150910XYZ\",\n  \"taxRegimeCode\": \"601\",\n  \"addressStreet\": \"Paseo de la Reforma 450\",\n  \"addressColonia\": \"Juarez\",\n  \"addressMunicipality\": \"Cuauhtemoc\",\n  \"addressState\": \"CDMX\",\n  \"addressZip\": \"06600\",\n  \"phone\": \"5598765432\",\n  \"email\": \"contacto@medicloud.com\",\n  \"logoUrl\": \"https://medicloud.com/logo.png\",\n  \"timezone\": \"America/Mexico_City\",\n  \"privacyNoticeUrl\": \"https://medicloud.com/privacy\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8082/api/v1/clinics/{{clinic_original_id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"clinics",
+						"{{clinic_original_id}}"
+					]
+				},
+				"description": "Permite completar los datos fiscales y generales de la clínica originalmente creada en el onboarding."
+			},
+			"response": []
+		},
+		{
+			"name": "7. Obtener Clínicas del Usuario",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 200 (OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Retorna al menos dos clínicas\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an(\"array\");",
+							"    pm.expect(jsonData.length).to.be.at.least(2);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/api/v1/clinics",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"clinics"
+					]
+				},
+				"description": "Obtiene la lista de todas las clínicas pertenecientes al usuario autenticado."
+			},
+			"response": []
+		},
+		{
+			"name": "8. Obtener Detalle de Clínica",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 200 (OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Retorna los detalles correctos\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.id).to.eql(pm.collectionVariables.get(\"clinic_original_id\"));",
+							"    pm.expect(jsonData.name).to.eql(\"JClinical Medicloud Corporativo\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/api/v1/clinics/{{clinic_original_id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"clinics",
+						"{{clinic_original_id}}"
+					]
+				},
+				"description": "Obtiene la información a detalle de una clínica específica por su ID."
+			},
+			"response": []
+		},
+		{
+			"name": "9. Registrar Paciente",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 201 (Creado)\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"Retorna datos del paciente creado\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"id\");",
+							"    pm.expect(jsonData.firstName).to.eql(\"Juan\");",
+							"    pm.expect(jsonData.curp).to.eql(\"PELJ900101HDFRRD05\");",
+							"    pm.expect(jsonData.clinicId).to.exist;",
+							"",
+							"    // Guardar ID del paciente para pruebas posteriores",
+							"    pm.collectionVariables.set(\"patient_id\", jsonData.id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"clinicId\": \"{{clinic_original_id}}\",\n  \"firstName\": \"Juan\",\n  \"lastNamePaterno\": \"Pérez\",\n  \"lastNameMaterno\": \"López\",\n  \"curp\": \"PELJ900101HDFRRD05\",\n  \"dateOfBirth\": \"1990-01-01\",\n  \"gender\": \"MALE\",\n  \"phone\": \"5512345678\",\n  \"email\": \"juan.perez@example.com\",\n  \"occupation\": \"Ingeniero\",\n  \"maritalStatus\": \"SINGLE\",\n  \"nationality\": \"Mexicana\",\n  \"bloodType\": \"O_POSITIVE\",\n  \"address\": {\n    \"street\": \"Av. Reforma\",\n    \"outdoorNumber\": \"123\",\n    \"indoorNumber\": \"Depto 4B\",\n    \"colonia\": \"Juárez\",\n    \"municipality\": \"Cuauhtémoc\",\n    \"state\": \"CDMX\",\n    \"zipCode\": \"06600\"\n  },\n  \"emergencyContact\": {\n    \"fullName\": \"María López Pérez\",\n    \"relationship\": \"Madre\",\n    \"phone\": \"5587654321\"\n  }\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8082/api/v1/patients",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"patients"
+					]
+				},
+				"description": "Crea un nuevo paciente asociado a la clínica dada."
+			},
+			"response": []
+		},
+		{
+			"name": "10. Obtener Paciente por ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 200 (OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Retorna los datos correctos del paciente\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.id).to.eql(pm.collectionVariables.get(\"patient_id\"));",
+							"    pm.expect(jsonData.firstName).to.eql(\"Juan\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/api/v1/patients/{{patient_id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"patients",
+						"{{patient_id}}"
+					]
+				},
+				"description": "Obtiene la información detallada de un paciente específico por su ID."
+			},
+			"response": []
+		},
+		{
+			"name": "11. Obtener Pacientes de Clínica",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 200 (OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Retorna una lista de pacientes\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an(\"array\");",
+							"    pm.expect(jsonData.length).to.be.at.least(1);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/api/v1/patients?clinicId={{clinic_original_id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"patients"
+					],
+					"query": [
+						{
+							"key": "clinicId",
+							"value": "{{clinic_original_id}}"
+						}
+					]
+				},
+				"description": "Obtiene la lista de todos los pacientes pertenecientes a una clínica específica."
+			},
+			"response": []
+		},
+		{
+			"name": "12. Registrar Paciente en Sucursal",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 201 (Creado)\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"Retorna datos del paciente creado en sucursal\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"id\");",
+							"    pm.expect(jsonData.firstName).to.eql(\"María\");",
+							"    pm.expect(jsonData.curp).to.eql(\"LOPM920505HDFRRN09\");",
+							"    pm.expect(jsonData.clinicId).to.eql(pm.collectionVariables.get(\"clinic_sucursal_id\"));",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"clinicId\": \"{{clinic_sucursal_id}}\",\n  \"firstName\": \"María\",\n  \"lastNamePaterno\": \"López\",\n  \"lastNameMaterno\": \"Martínez\",\n  \"curp\": \"LOPM920505HDFRRN09\",\n  \"dateOfBirth\": \"1992-05-05\",\n  \"gender\": \"FEMALE\",\n  \"phone\": \"5587654321\",\n  \"email\": \"maria.lopez@example.com\",\n  \"occupation\": \"Doctora\",\n  \"maritalStatus\": \"SINGLE\",\n  \"nationality\": \"Mexicana\",\n  \"bloodType\": \"A_POSITIVE\",\n  \"address\": {\n    \"street\": \"Av. Insurgentes Sur\",\n    \"outdoorNumber\": \"456\",\n    \"colonia\": \"Roma Sur\",\n    \"municipality\": \"Cuauhtémoc\",\n    \"state\": \"CDMX\",\n    \"zipCode\": \"06760\"\n  },\n  \"emergencyContact\": {\n    \"fullName\": \"Pedro López\",\n    \"relationship\": \"Padre\",\n    \"phone\": \"5511223344\"\n  }\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8082/api/v1/patients",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"patients"
+					]
+				},
+				"description": "Crea un segundo paciente asociado a la nueva clínica (sucursal) para validar la separación de datos."
+			},
+			"response": []
+		},
+		{
+			"name": "13. Listar Pacientes de Sucursal (Verificar Aislamiento)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 200 (OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Retorna únicamente el paciente de la sucursal (aislamiento)\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an(\"array\");",
+							"    pm.expect(jsonData.length).to.eql(1);",
+							"    pm.expect(jsonData[0].firstName).to.eql(\"María\");",
+							"    pm.expect(jsonData[0].clinicId).to.eql(pm.collectionVariables.get(\"clinic_sucursal_id\"));",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/api/v1/patients?clinicId={{clinic_sucursal_id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"patients"
+					],
+					"query": [
+						{
+							"key": "clinicId",
+							"value": "{{clinic_sucursal_id}}"
+						}
+					]
+				},
+				"description": "Obtiene la lista de pacientes de la sucursal y verifica que solo retorne al paciente registrado en ella, garantizando el aislamiento de datos por clínica."
+			},
+			"response": []
+		},
+		{
+			"name": "14. Listar Pacientes de Clínica Original (Verificar Aislamiento)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 200 (OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Retorna únicamente el paciente de la clínica original (aislamiento)\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an(\"array\");",
+							"    pm.expect(jsonData.length).to.eql(1);",
+							"    pm.expect(jsonData[0].firstName).to.eql(\"Juan\");",
+							"    pm.expect(jsonData[0].clinicId).to.eql(pm.collectionVariables.get(\"clinic_original_id\"));",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/api/v1/patients?clinicId={{clinic_original_id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"patients"
+					],
+					"query": [
+						{
+							"key": "clinicId",
+							"value": "{{clinic_original_id}}"
+						}
+					]
+				},
+				"description": "Obtiene la lista de pacientes de la clínica original y verifica que no se mezclen los datos de la sucursal."
+			},
+			"response": []
+		},
+		{
+			"name": "15. Registrar Segundo Usuario",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 201 (Creado)\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+							"});",
+							"",
+							"pm.test(\"Retorna pre-registro de segundo usuario\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.email).to.eql(\"doctor.segundo@gmail.com\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"doctor.segundo@gmail.com\",\n  \"password\": \"SecurePassword123*\",\n  \"fullName\": \"Dr. Segundo Medico\",\n  \"clinicName\": \"Clinica del Segundo Doctor\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8082/api/v1/users/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"register"
+					]
+				},
+				"description": "Registra un segundo usuario de prueba para validar aislamiento multi-usuario."
+			},
+			"response": []
+		},
+		{
+			"name": "16. Verificar Correo del Segundo Usuario",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 200 (OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"token\": \"INSERTA_AQUI_EL_SEGUNDO_TOKEN_DE_LA_BD\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8082/api/v1/users/verify-email",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"verify-email"
+					]
+				},
+				"description": "Verifica el correo del segundo usuario. Se debe copiar el token impreso en la consola por el backend durante el registro."
+			},
+			"response": []
+		},
+		{
+			"name": "17. Iniciar Sesión del Segundo Usuario (Login JWT)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 200 (OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Guarda token JWT de segundo usuario\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"token\");",
+							"    pm.collectionVariables.set(\"jwt_token_user2\", jsonData.token);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"doctor.segundo@gmail.com\",\n  \"password\": \"SecurePassword123*\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8082/api/v1/auth/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"auth",
+						"login"
+					]
+				},
+				"description": "Autentica al segundo usuario y devuelve su token JWT."
+			},
+			"response": []
+		},
+		{
+			"name": "18. Obtener Perfil del Segundo Usuario",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 200 (OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Guarda id de la clinica del segundo usuario\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.clinics).to.be.an(\"array\");",
+							"    pm.expect(jsonData.clinics.length).to.be.at.least(1);",
+							"    pm.collectionVariables.set(\"clinic_user2_id\", jsonData.clinics[0].id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token_user2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/api/v1/auth/me",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"auth",
+						"me"
+					]
+				},
+				"description": "Obtiene la clínica creada automáticamente en el onboarding del segundo usuario."
+			},
+			"response": []
+		},
+		{
+			"name": "19. Registrar Paciente de Segundo Usuario",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 201 (Creado)\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"Retorna datos del paciente creado para segundo usuario\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"id\");",
+							"    pm.expect(jsonData.firstName).to.eql(\"Pedro\");",
+							"    pm.expect(jsonData.curp).to.eql(\"GOSP910808HDFRRN08\");",
+							"    pm.expect(jsonData.clinicId).to.eql(pm.collectionVariables.get(\"clinic_user2_id\"));",
+							"    pm.collectionVariables.set(\"patient_user2_id\", jsonData.id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token_user2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"clinicId\": \"{{clinic_user2_id}}\",\n  \"firstName\": \"Pedro\",\n  \"lastNamePaterno\": \"Gómez\",\n  \"lastNameMaterno\": \"Sánchez\",\n  \"curp\": \"GOSP910808HDFRRN08\",\n  \"dateOfBirth\": \"1991-08-08\",\n  \"gender\": \"MALE\",\n  \"phone\": \"5533445566\",\n  \"email\": \"pedro.gomez@example.com\",\n  \"occupation\": \"Abogado\",\n  \"maritalStatus\": \"MARRIED\",\n  \"nationality\": \"Mexicana\",\n  \"bloodType\": \"B_POSITIVE\",\n  \"address\": {\n    \"street\": \"Av. Universidad\",\n    \"outdoorNumber\": \"789\",\n    \"colonia\": \"Coyoacán\",\n    \"municipality\": \"Coyoacán\",\n    \"state\": \"CDMX\",\n    \"zipCode\": \"04300\"\n  },\n  \"emergencyContact\": {\n    \"fullName\": \"Laura Gómez\",\n    \"relationship\": \"Esposa\",\n    \"phone\": \"5599887766\"\n  }\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8082/api/v1/patients",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"patients"
+					]
+				},
+				"description": "Crea un paciente asociado al segundo usuario (Dr. Segundo Medico)."
+			},
+			"response": []
+		},
+		{
+			"name": "20. Listar Pacientes Segundo Usuario (Verificar Aislamiento)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 200 (OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Retorna únicamente el paciente del segundo usuario\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an(\"array\");",
+							"    pm.expect(jsonData.length).to.eql(1);",
+							"    pm.expect(jsonData[0].firstName).to.eql(\"Pedro\");",
+							"    pm.expect(jsonData[0].clinicId).to.eql(pm.collectionVariables.get(\"clinic_user2_id\"));",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token_user2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/api/v1/patients?clinicId={{clinic_user2_id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"patients"
+					],
+					"query": [
+						{
+							"key": "clinicId",
+							"value": "{{clinic_user2_id}}"
+						}
+					]
+				},
+				"description": "Obtiene la lista de pacientes del segundo usuario y verifica que solo retorne al paciente registrado por él, garantizando el aislamiento de datos multi-usuario."
+			},
+			"response": []
+		},
+		{
+			"name": "21. Crear Plantilla de Historia Clínica",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 201 (Creado)\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"Retorna datos de plantilla creada y guarda ID\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"id\");",
+							"    pm.expect(jsonData.name).to.eql(\"Ficha General de Consulta\");",
+							"    pm.expect(jsonData.schemaJson).to.contain(\"hereditaryFamilyHistory\");",
+							"    pm.collectionVariables.set(\"history_template_id\", jsonData.id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Ficha General de Consulta\",\n  \"description\": \"Plantilla por defecto con antecedentes heredofamiliares y patológicos.\",\n  \"schemaJson\": \"{\\\"fields\\\": [{\\\"id\\\": \\\"hereditaryFamilyHistory\\\", \\\"type\\\": \\\"text\\\", \\\"label\\\": \\\"Antecedentes Heredofamiliares\\\"}, {\\\"id\\\": \\\"pathologicalHistory\\\", \\\"type\\\": \\\"text\\\", \\\"label\\\": \\\"Antecedentes Personales Patológicos\\\"}]}\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8082/api/v1/clinics/{{clinic_original_id}}/history-templates",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"clinics",
+						"{{clinic_original_id}}",
+						"history-templates"
+					]
+				},
+				"description": "Crea una nueva plantilla para la historia clínica."
+			},
+			"response": []
+		},
+		{
+			"name": "22. Listar Plantillas de la Clínica",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 200 (OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Retorna lista de plantillas\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an(\"array\");",
+							"    pm.expect(jsonData.length).to.be.at.least(1);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/api/v1/clinics/{{clinic_original_id}}/history-templates",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"clinics",
+						"{{clinic_original_id}}",
+						"history-templates"
+					]
+				},
+				"description": "Obtiene la lista de todas las plantillas registradas por la clínica."
+			},
+			"response": []
+		},
+		{
+			"name": "23. Registrar/Actualizar Respuestas de Historia Clínica",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 200 (OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Retorna respuestas registradas\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"id\");",
+							"    pm.expect(jsonData.patientId).to.eql(pm.collectionVariables.get(\"patient_id\"));",
+							"    pm.expect(jsonData.templateId).to.eql(pm.collectionVariables.get(\"history_template_id\"));",
+							"    pm.expect(jsonData.answersJson).to.contain(\"Diabetes\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"clinicId\": \"{{clinic_original_id}}\",\n  \"templateId\": \"{{history_template_id}}\",\n  \"answersJson\": \"{\\\"hereditaryFamilyHistory\\\": \\\"Abuela materna con Diabetes. Padre con hipertensión.\\\", \\\"pathologicalHistory\\\": \\\"Alergia a la penicilina.\\\"}\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8082/api/v1/patients/{{patient_id}}/medical-history",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"patients",
+						"{{patient_id}}",
+						"medical-history"
+					]
+				},
+				"description": "Registra las respuestas dinámicas del paciente asociadas a una plantilla."
+			},
+			"response": []
+		},
+		{
+			"name": "24. Obtener Historia Clínica por Plantilla",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 200 (OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Retorna respuestas del paciente correctas\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.templateId).to.eql(pm.collectionVariables.get(\"history_template_id\"));",
+							"    pm.expect(jsonData.answersJson).to.contain(\"penicilina\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/api/v1/patients/{{patient_id}}/medical-history/by-template/{{history_template_id}}?clinicId={{clinic_original_id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"patients",
+						"{{patient_id}}",
+						"medical-history",
+						"by-template",
+						"{{history_template_id}}"
+					],
+					"query": [
+						{
+							"key": "clinicId",
+							"value": "{{clinic_original_id}}"
+						}
+					]
+				},
+				"description": "Recupera la historia clínica y respuestas del paciente para una plantilla específica."
+			},
+			"response": []
+		},
+		{
+			"name": "25. Listar Historias Clínicas del Paciente",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 200 (OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Retorna lista de historias clínicas\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an(\"array\");",
+							"    pm.expect(jsonData.length).to.be.at.least(1);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/api/v1/patients/{{patient_id}}/medical-history?clinicId={{clinic_original_id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"patients",
+						"{{patient_id}}",
+						"medical-history"
+					],
+					"query": [
+						{
+							"key": "clinicId",
+							"value": "{{clinic_original_id}}"
+						}
+					]
+				},
+				"description": "Lista todas las historias clínicas del paciente registradas bajo distintas plantillas."
+			},
+			"response": []
+		},
+		{
+			"name": "26. Crear Nota Clínica en Borrador",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 201 (Creado)\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"Retorna nota clínica en DRAFT e IMC calculado\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"id\");",
+							"    pm.expect(jsonData.status).to.eql(\"DRAFT\");",
+							"    pm.expect(jsonData.vitalSigns.bmi).to.eql(24.22); // 70 / (1.7*1.7) = 24.22",
+							"    pm.collectionVariables.set(\"note_id\", jsonData.id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"clinicId\": \"{{clinic_original_id}}\",\n  \"doctorId\": \"{{patient_id}}\",\n  \"subjective\": \"Paciente refiere dolor de cabeza leve de 2 días de evolución.\",\n  \"objective\": \"Presión arterial normal. Reflejos normales.\",\n  \"temperature\": 36.5,\n  \"bloodPressure\": \"120/80\",\n  \"heartRate\": 72,\n  \"respiratoryRate\": 18,\n  \"weight\": 70.0,\n  \"height\": 1.70,\n  \"oxygenSaturation\": 98,\n  \"assessment\": \"Cefalea tensional leve.\",\n  \"plan\": \"Tomar Paracetamol 500mg c/8h por 3 días. Descansar.\",\n  \"status\": \"DRAFT\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8082/api/v1/patients/{{patient_id}}/clinical-notes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"patients",
+						"{{patient_id}}",
+						"clinical-notes"
+					]
+				},
+				"description": "Registra una nota clínica en estado Borrador (DRAFT) para permitir ediciones futuras."
+			},
+			"response": []
+		},
+		{
+			"name": "27. Editar Nota Clínica en Borrador",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 200 (OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Se actualizó el contenido subjetivo\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.subjective).to.contain(\"dolor de cabeza moderado\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"clinicId\": \"{{clinic_original_id}}\",\n  \"subjective\": \"Paciente refiere dolor de cabeza moderado de 2 días de evolución, ahora acompañado de fotofobia.\",\n  \"objective\": \"Presión arterial normal. Sin signos meníngeos.\",\n  \"temperature\": 36.7,\n  \"bloodPressure\": \"120/80\",\n  \"heartRate\": 75,\n  \"respiratoryRate\": 18,\n  \"weight\": 70.0,\n  \"height\": 1.70,\n  \"oxygenSaturation\": 98,\n  \"assessment\": \"Cefalea tensional / Migraña en estudio.\",\n  \"plan\": \"Ibuprofeno 400mg en caso de dolor. Reposo en habitación oscura.\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8082/api/v1/patients/{{patient_id}}/clinical-notes/{{note_id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"patients",
+						"{{patient_id}}",
+						"clinical-notes",
+						"{{note_id}}"
+					]
+				},
+				"description": "Edita la nota clínica en borrador."
+			},
+			"response": []
+		},
+		{
+			"name": "28. Firmar Nota Clínica",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 200 (OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Estatus cambia a SIGNED\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.eql(\"SIGNED\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/api/v1/patients/{{patient_id}}/clinical-notes/{{note_id}}/sign?clinicId={{clinic_original_id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"patients",
+						"{{patient_id}}",
+						"clinical-notes",
+						"{{note_id}}",
+						"sign"
+					],
+					"query": [
+						{
+							"key": "clinicId",
+							"value": "{{clinic_original_id}}"
+						}
+					]
+				},
+				"description": "Firma y finaliza la nota clínica para hacerla inmutable."
+			},
+			"response": []
+		},
+		{
+			"name": "29. Intentar Editar Nota Clínica Firmada (Debe Fallar)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 400 (Bad Request) debido a nota firmada\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"Mensaje indica que no se puede modificar nota firmada\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.message).to.contain(\"no se puede modificar una nota clínica que ya ha sido firmada\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"clinicId\": \"{{clinic_original_id}}\",\n  \"subjective\": \"Intento de alterar una nota inmutable.\",\n  \"objective\": \"Intento de alterar una nota inmutable.\",\n  \"temperature\": 36.0,\n  \"bloodPressure\": \"120/80\",\n  \"heartRate\": 70,\n  \"respiratoryRate\": 18,\n  \"weight\": 70.0,\n  \"height\": 1.70,\n  \"oxygenSaturation\": 98,\n  \"assessment\": \"Cefalea.\",\n  \"plan\": \"Reposo.\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8082/api/v1/patients/{{patient_id}}/clinical-notes/{{note_id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"patients",
+						"{{patient_id}}",
+						"clinical-notes",
+						"{{note_id}}"
+					]
+				},
+				"description": "Verifica que el sistema rechace con error 400 cualquier edición sobre una nota con estatus SIGNED."
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "jwt_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "clinic_original_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "clinic_sucursal_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "patient_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "jwt_token_user2",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "clinic_user2_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "patient_user2_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "note_id",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

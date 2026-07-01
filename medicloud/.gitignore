@@ -1,0 +1,24 @@
+# Target directory containing compiled code
+**/target/
+
+# IDE specific settings
+.idea/
+.ide/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.settings/
+.project
+.classpath
+.factorypath
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Log files
+*.log
+
+# Agent/Assistant config
+**/.claude/

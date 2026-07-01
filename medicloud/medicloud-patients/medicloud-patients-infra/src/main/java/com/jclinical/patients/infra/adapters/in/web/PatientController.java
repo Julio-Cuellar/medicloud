@@ -1,0 +1,92 @@
+package com.jclinical.patients.infra.adapters.in.web;
+
+import com.jclinical.patients.domain.model.Patient;
+import com.jclinical.patients.domain.ports.in.GetPatientUseCase;
+import com.jclinical.patients.domain.ports.in.RegisterPatientUseCase;
+import com.jclinical.patients.domain.ports.in.RegisterPatientUseCase.RegisterPatientCommand;
+import com.jclinical.patients.infra.adapters.in.web.dto.PatientResponse;
+import com.jclinical.patients.infra.adapters.in.web.dto.RegisterPatientRequest;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/v1/patients")
+@RequiredArgsConstructor
+public class PatientController {
+
+    private final RegisterPatientUseCase registerPatientUseCase;
+    private final GetPatientUseCase getPatientUseCase;
+
+    @PostMapping
+    public ResponseEntity<PatientResponse> register(@RequestBody RegisterPatientRequest request) {
+        RegisterPatientCommand command = new RegisterPatientCommand(
+                request.clinicId(),
+                request.firstName(),
+                request.lastNamePaterno(),
+                request.lastNameMaterno(),
+                request.curp(),
+                request.dateOfBirth(),
+                request.gender(),
+                request.phone(),
+                request.email(),
+                request.occupation(),
+                request.maritalStatus(),
+                request.nationality(),
+                request.bloodType(),
+                request.address(),
+                request.emergencyContact()
+        );
+
+        Patient patient = registerPatientUseCase.registerPatient(command);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(patient));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<PatientResponse> getById(@PathVariable UUID id) {
+        return getPatientUseCase.getPatientById(id)
+                .map(patient -> ResponseEntity.ok(toResponse(patient)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping
+    public ResponseEntity<List<PatientResponse>> getByClinic(@RequestParam UUID clinicId) {
+        List<PatientResponse> responses = getPatientUseCase.getPatientsByClinic(clinicId).stream()
+                .map(this::toResponse)
+                .toList();
+        return ResponseEntity.ok(responses);
+    }
+
+    private PatientResponse toResponse(Patient patient) {
+        return new PatientResponse(
+                patient.getId(),
+                patient.getClinicId(),
+                patient.getFirstName(),
+                patient.getLastNamePaterno(),
+                patient.getLastNameMaterno(),
+                patient.getCurp(),
+                patient.getDateOfBirth(),
+                patient.getGender(),
+                patient.getPhone(),
+                patient.getEmail(),
+                patient.getOccupation(),
+                patient.getMaritalStatus(),
+                patient.getNationality(),
+                patient.getBloodType(),
+                patient.getAddress(),
+                patient.getEmergencyContact(),
+                patient.getCreatedAt(),
+                patient.getUpdatedAt()
+        );
+    }
+}

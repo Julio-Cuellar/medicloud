@@ -11,4 +11,6 @@ public interface PatientRepositoryPort {
     Optional<Patient> findById(UUID id);
     List<Patient> findByClinicId(UUID clinicId);
     boolean existsByCurpAndClinicId(String curp, UUID clinicId);
+    boolean existsById(UUID id);
+    void deleteById(UUID id);
 }

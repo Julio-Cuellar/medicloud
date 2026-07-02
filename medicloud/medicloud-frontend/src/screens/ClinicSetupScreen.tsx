@@ -45,7 +45,8 @@ export function ClinicSetupScreen({ user, onDone }: { user: UserProfile; onDone:
         addressMunicipality: value("addressMunicipality") || undefined,
         addressState: value("addressState") || undefined,
         addressZip: value("addressZip") || undefined,
-        phone: value("phone") || undefined
+        phone: value("phone") || undefined,
+        logoUrl: value("logoUrl") || undefined
       };
       const updated = await clinicsApi.update(clinicId, body);
       const updatedUser: UserProfile = {

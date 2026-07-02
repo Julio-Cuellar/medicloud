@@ -41,6 +41,7 @@
         <module>medicloud-auth</module>
         <module>medicloud-patients</module>
         <module>medicloud-records</module>
+        <module>medicloud-attachments</module>
         <module>medicloud-app</module>
     </modules>
 
@@ -105,6 +106,11 @@
             <dependency>
                 <groupId>com.jclinical</groupId>
                 <artifactId>medicloud-records-infra</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.jclinical</groupId>
+                <artifactId>medicloud-attachments</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

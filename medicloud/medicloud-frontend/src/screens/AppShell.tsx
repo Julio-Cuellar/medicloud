@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { IconLogout, IconMenu2, IconMoon, IconPlus, IconShieldLock, IconSun } from "@tabler/icons-react";
 import { ClinicModal } from "../components/ClinicModal";
+import { PatientModal } from "../components/PatientModal";
+import { PatientsPanel } from "../components/PatientsPanel";
 import { Sidebar } from "../components/Sidebar";
+import { ExpedienteScreen } from "./ExpedienteScreen";
 import { mobileRestricted, moduleCopy, modules, type ModuleKey } from "../constants/modules";
-import { authApi, clinicsApi, getFriendlyError, sessionStore } from "../lib/api";
+import { authApi, clinicsApi, getFriendlyError, patientsApi, sessionStore } from "../lib/api";
 import type { UserProfile } from "../types/auth";
 import type { ClinicResponse } from "../types/clinic";
+import type { PatientResponse } from "../types/patient";
 import type { Theme } from "../types/theme";
 import { getInitials } from "../utils/getInitials";
 
@@ -27,8 +31,12 @@ export function AppShell({
   const [error, setError] = useState("");
   const [clinics, setClinics] = useState<ClinicResponse[]>([]);
   const [clinicModal, setClinicModal] = useState<{ mode: "create" | "edit"; clinic?: ClinicResponse } | null>(null);
+  const [patients, setPatients] = useState<PatientResponse[]>([]);
+  const [patientsLoading, setPatientsLoading] = useState(false);
+  const [patientModalOpen, setPatientModalOpen] = useState(false);
   const copy = moduleCopy[active];
   const initials = useMemo(() => getInitials(user.fullName), [user.fullName]);
+  const activeClinicId = clinics[0]?.id ?? user.clinics?.[0]?.id;
   const activeClinic = clinics[0]?.name ?? user.clinics?.[0]?.name;
 
   const loadClinics = () => {
@@ -42,6 +50,16 @@ export function AppShell({
     loadClinics();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if ((active !== "pacientes" && active !== "expediente") || !activeClinicId) return;
+    setPatientsLoading(true);
+    patientsApi
+      .listByClinic(activeClinicId)
+      .then(setPatients)
+      .catch((caught) => setError(getFriendlyError(caught)))
+      .finally(() => setPatientsLoading(false));
+  }, [active, activeClinicId]);
 
   const logout = async () => {
     try {
@@ -110,7 +128,16 @@ export function AppShell({
             {theme === "light" ? <IconMoon size={18} /> : <IconSun size={18} />}
           </button>
           {copy.secondary && <button className="btn secondary" type="button">{copy.secondary}</button>}
-          {copy.primary && <button className="btn primary" type="button">{copy.primary}</button>}
+          {copy.primary && (
+            <button
+              className="btn primary"
+              type="button"
+              disabled={active === "pacientes" && !activeClinicId}
+              onClick={active === "pacientes" ? () => setPatientModalOpen(true) : undefined}
+            >
+              {copy.primary}
+            </button>
+          )}
         </div>
       </header>
 
@@ -120,6 +147,22 @@ export function AppShell({
             Esta función está optimizada para pantallas más grandes. Por favor, usa una tablet o computadora.
           </div>
         )}
+        {active === "pacientes" ? (
+          <PatientsPanel
+            clinicId={activeClinicId}
+            patients={patients}
+            loading={patientsLoading}
+            hasClinic={Boolean(activeClinicId)}
+            onPatientUpdated={(updated) =>
+              setPatients((prev) => prev.map((patient) => (patient.id === updated.id ? updated : patient)))
+            }
+            onPatientDeleted={(patientId) =>
+              setPatients((prev) => prev.filter((patient) => patient.id !== patientId))
+            }
+          />
+        ) : active === "expediente" ? (
+          <ExpedienteScreen clinicId={activeClinicId} hasClinic={Boolean(activeClinicId)} patients={patients} />
+        ) : (
         <section className="dashboard-grid">
           <article className="panel">
             <div className="panel-heading">
@@ -189,6 +232,7 @@ export function AppShell({
             </div>
           </article>
         </section>
+        )}
 
         {status && <p className="alert success">{status}</p>}
         {error && <p className="alert error">{error}</p>}
@@ -200,6 +244,19 @@ export function AppShell({
           clinic={clinicModal.clinic}
           onClose={() => setClinicModal(null)}
           onSaved={handleClinicSaved}
+        />
+      )}
+
+      {patientModalOpen && activeClinicId && (
+        <PatientModal
+          mode="create"
+          clinicId={activeClinicId}
+          onClose={() => setPatientModalOpen(false)}
+          onSaved={(patient) => {
+            setPatients((prev) => [...prev, patient]);
+            setPatientModalOpen(false);
+            setStatus("Paciente registrado correctamente.");
+          }}
         />
       )}
     </div>

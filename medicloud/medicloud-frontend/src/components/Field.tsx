@@ -6,6 +6,7 @@ export function Field(props: {
   autoComplete?: string;
   defaultValue?: string;
   readOnly?: boolean;
+  placeholder?: string;
   options?: Array<{ value: string; label: string }>;
 }) {
   const { label, options, ...inputProps } = props;

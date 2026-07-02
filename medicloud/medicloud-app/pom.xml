@@ -39,6 +39,10 @@
             <groupId>com.jclinical</groupId>
             <artifactId>medicloud-records-infra</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.jclinical</groupId>
+            <artifactId>medicloud-attachments</artifactId>
+        </dependency>
 
         <!-- Spring Boot Web (necesario para arrancar el servidor embebido) -->
         <dependency>

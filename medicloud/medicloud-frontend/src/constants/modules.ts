@@ -23,7 +23,7 @@ export const modules: Array<{ key: ModuleKey; label: string; section: string; ic
 export const moduleCopy: Record<ModuleKey, { subtitle: string; primary?: string; secondary?: string }> = {
   agenda: { subtitle: "Lunes 15 de junio, 2026", primary: "+ Nueva cita", secondary: "Vista semana" },
   pacientes: { subtitle: "Catálogo activo de pacientes", primary: "+ Nuevo paciente", secondary: "Exportar listado" },
-  expediente: { subtitle: "Documentos clínicos y canvas NOM", primary: "+ Nuevo documento", secondary: "Vista previa" },
+  expediente: { subtitle: "Plantillas e historia clínica de pacientes" },
   caja: { subtitle: "Cobros, sesiones y cortes", primary: "Registrar cobro", secondary: "Abrir sesión" },
   inventario: { subtitle: "Insumos y existencias básicas", primary: "+ Agregar producto", secondary: "Ajuste" },
   contabilidad: { subtitle: "ARE y libro mayor interno", secondary: "Exportar periodo" },

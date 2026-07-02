@@ -39,4 +39,14 @@ public class SqlPatientRepository implements PatientRepositoryPort {
     public boolean existsByCurpAndClinicId(String curp, UUID clinicId) {
         return springDataRepository.existsByCurpAndClinicId(curp, clinicId);
     }
+
+    @Override
+    public boolean existsById(UUID id) {
+        return springDataRepository.existsById(id);
+    }
+
+    @Override
+    public void deleteById(UUID id) {
+        springDataRepository.deleteById(id);
+    }
 }

@@ -56,7 +56,8 @@ export function ClinicModal({
           addressMunicipality: value("addressMunicipality") || undefined,
           addressState: value("addressState") || undefined,
           addressZip: value("addressZip") || undefined,
-          phone: value("phone") || undefined
+          phone: value("phone") || undefined,
+          logoUrl: value("logoUrl") || undefined
         };
         const updated = await clinicsApi.update(clinic.id, body);
         onSaved(updated);

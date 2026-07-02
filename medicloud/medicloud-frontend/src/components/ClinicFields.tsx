@@ -24,6 +24,12 @@ export function ClinicFields({ clinic, requireEmail }: { clinic?: ClinicResponse
       <Field name="addressMunicipality" label="Municipio/Alcaldía" defaultValue={clinic?.addressMunicipality} />
       <Field name="addressState" label="Estado" defaultValue={clinic?.addressState} />
       <Field name="addressZip" label="Código postal" defaultValue={clinic?.addressZip} />
+      <Field
+        name="logoUrl"
+        label="URL del logotipo (imagen pública)"
+        defaultValue={clinic?.logoUrl}
+        placeholder="https://..."
+      />
     </>
   );
 }
